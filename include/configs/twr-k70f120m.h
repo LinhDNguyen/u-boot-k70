@@ -323,24 +323,23 @@
 #define CONFIG_CMD_NAND
 
 // LinhNV1
+#define CONFIG_CMD_FLASH
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DNS
 #define CONFIG_CMD_DIAG
-//#define CONFIG_CMD_EXT2
-//#define CONFIG_CMD_FAT
-#define CONFIG_CMD_JFFS2
-#define CONFIG_CMD_MISC
-//#define CONFIG_CMD_MMC
-//#define CONFIG_CMD_MTDPARTS
+
+//#define CONFIG_CMD_JFFS2
+//#define CONFIG_CMD_MISC
+
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_REGINFO
-//#define CONFIG_CMD_USB
 
 /*
  * To save memory disable long help
  */
-#undef CONFIG_SYS_LONGHELP
+//#undef CONFIG_SYS_LONGHELP
+#define CONFIG_SYS_LONGHELP
 
 /*
  * Max number of command args
