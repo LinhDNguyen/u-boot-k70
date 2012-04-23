@@ -148,7 +148,7 @@ int fec_send(struct eth_device *dev, volatile void *packet, int length)
 {
 	struct fec_info_s *info = dev->priv;
 	volatile fec_t *fecp = (fec_t *) (info->iobase);
-	int j, rc;
+	unsigned long j,newi, rc;
 	u16 phyStatus;
 
 	miiphy_read(dev->name, info->phy_addr, PHY_BMSR, &phyStatus);
@@ -190,13 +190,17 @@ int fec_send(struct eth_device *dev, volatile void *packet, int length)
 #endif
 
 	j = 0;
+	newi = 0;
 	while ((info->txbd[info->txIdx].cbd_sc & htons(BD_ENET_TX_READY)) &&
 	       (j < MCFFEC_TOUT_LOOP)) {
 		udelay(1);
-		j++;
+		if(newi++ >= 20){
+			j++;
+			newi = 0;
+		}
 	}
 	if (j >= MCFFEC_TOUT_LOOP) {
-		printf("TX timeout\n");
+		printf("MCFFEC TX timeout\n");
 	}
 
 #ifdef ET_DEBUG

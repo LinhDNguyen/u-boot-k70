@@ -30,6 +30,7 @@
  * Disable debug messages
  */
 #undef DEBUG
+//#define DEBUG
 
 /*
  * This is an ARM Cortex-M4 CPU core which is backward-compatible with Cortex-M3
@@ -321,6 +322,21 @@
 #undef CONFIG_CMD_XIMG
 #define CONFIG_CMD_NAND
 
+// LinhNV1
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DNS
+#define CONFIG_CMD_DIAG
+//#define CONFIG_CMD_EXT2
+//#define CONFIG_CMD_FAT
+#define CONFIG_CMD_JFFS2
+#define CONFIG_CMD_MISC
+//#define CONFIG_CMD_MMC
+//#define CONFIG_CMD_MTDPARTS
+#define CONFIG_CMD_NFS
+#define CONFIG_CMD_REGINFO
+//#define CONFIG_CMD_USB
+
 /*
  * To save memory disable long help
  */
@@ -354,9 +370,9 @@
 	"addip=setenv bootargs ${bootargs} "			\
 		"ip=${ipaddr}:${serverip}:${gatewayip}:"	\
 			"${netmask}:${hostname}:eth0:off\0"	\
-	"ethaddr=C0:B1:3C:77:88:AA\0"				\
-	"ipaddr=172.17.6.36\0"					\
-	"serverip=172.17.0.1\0"					\
+	"ethaddr=C0:B1:3C:77:88:AC\0"				\
+	"ipaddr=10.207.215.221\0"					\
+	"serverip=10.207.215.87\0"					\
 	"image=k70/uImage\0"					\
 	"netboot=tftp ${image};run addip;bootm\0"		\
 	"flashaddr=00100000\0"					\
