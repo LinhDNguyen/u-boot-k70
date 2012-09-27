@@ -25,6 +25,9 @@
  */
 
 #include <common.h>
+
+#if defined(CFG_ENV_IS_NOWHERE) /* Environment is nowhere */
+
 #include <command.h>
 #include <environment.h>
 #include <linux/stddef.h>
@@ -34,6 +37,7 @@ DECLARE_GLOBAL_DATA_PTR;
 env_t *env_ptr = NULL;
 
 extern uchar default_environment[];
+extern int default_environment_size;
 
 
 void env_relocate_spec (void)
@@ -57,3 +61,5 @@ int  env_init(void)
 
 	return (0);
 }
+
+#endif /* CFG_ENV_IS_NOWHERE) */

@@ -22,13 +22,15 @@
  */
 
 #include <common.h>
-#include <stdio_dev.h>
+#include <console.h>
 #include <watchdog.h>
 #include <post.h>
 
 #ifdef CONFIG_LOGBUFFER
 #include <logbuff.h>
 #endif
+
+#ifdef CONFIG_POST
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -57,22 +59,6 @@ int post_init_f (void)
 
 	return res;
 }
-
-/*
- * Supply a default implementation for post_hotkeys_pressed() for boards
- * without hotkey support. We always return 0 here, so that the
- * long-running tests won't be started.
- *
- * Boards with hotkey support can override this weak default function
- * by defining one in their board specific code.
- */
-int __post_hotkeys_pressed(void)
-{
-	return 0;	/* No hotkeys supported */
-}
-int post_hotkeys_pressed(void)
-	__attribute__((weak, alias("__post_hotkeys_pressed")));
-
 
 void post_bootmode_init (void)
 {
@@ -143,7 +129,9 @@ void post_output_backlog ( void )
 				post_log ("PASSED\n");
 			else {
 				post_log ("FAILED\n");
-				show_boot_progress (-31);
+#ifdef CONFIG_SHOW_BOOT_PROGRESS
+				show_boot_progress(-31);
+#endif
 			}
 		}
 	}
@@ -171,10 +159,8 @@ static void post_bootmode_test_off (void)
 
 static void post_get_flags (int *test_flags)
 {
-	int  flag[] = {  POST_POWERON,   POST_NORMAL,   POST_SLOWTEST,
-			 POST_CRITICAL };
-	char *var[] = { "post_poweron", "post_normal", "post_slowtest",
-			"post_critical" };
+	int  flag[] = {  POST_POWERON,   POST_NORMAL,   POST_SLOWTEST };
+	char *var[] = { "post_poweron", "post_normal", "post_slowtest" };
 	int varnum = sizeof (var) / sizeof (var[0]);
 	char list[128];			/* long enough for POST list */
 	char *name;
@@ -240,9 +226,7 @@ static int post_run_single (struct post_test *test,
 
 		if (!(flags & POST_REBOOT)) {
 			if ((test_flags & POST_REBOOT) && !(flags & POST_MANUAL)) {
-				post_bootmode_test_on (
-					(gd->flags & GD_FLG_POSTFAIL) ?
-						POST_FAIL_SAVE | i : i);
+				post_bootmode_test_on (i);
 			}
 
 			if (test_flags & POST_PREREL)
@@ -254,20 +238,12 @@ static int post_run_single (struct post_test *test,
 		if (test_flags & POST_PREREL) {
 			if ((*test->test) (flags) == 0)
 				post_log_mark_succ ( test->testid );
-			else {
-				if (test_flags & POST_CRITICAL)
-					gd->flags |= GD_FLG_POSTFAIL;
-				if (test_flags & POST_STOP)
-					gd->flags |= GD_FLG_POSTSTOP;
-			}
 		} else {
 		if ((*test->test) (flags) != 0) {
 			post_log ("FAILED\n");
-			show_boot_progress (-32);
-			if (test_flags & POST_CRITICAL)
-				gd->flags |= GD_FLG_POSTFAIL;
-			if (test_flags & POST_STOP)
-				gd->flags |= GD_FLG_POSTSTOP;
+#ifdef CONFIG_SHOW_BOOT_PROGRESS
+			show_boot_progress(-32);
+#endif
 		}
 		else
 			post_log ("PASSED\n");
@@ -293,14 +269,7 @@ int post_run (char *name, int flags)
 	if (name == NULL) {
 		unsigned int last;
 
-		if (gd->flags & GD_FLG_POSTSTOP)
-			return 0;
-
 		if (post_bootmode_get (&last) & POST_POWERTEST) {
-			if (last & POST_FAIL_SAVE) {
-				last &= ~POST_FAIL_SAVE;
-				gd->flags |= GD_FLG_POSTFAIL;
-			}
 			if (last < post_list_size &&
 				(flags & test_flags[last] & POST_ALWAYS) &&
 				(flags & test_flags[last] & POST_MEM)) {
@@ -310,8 +279,6 @@ int post_run (char *name, int flags)
 						 flags | POST_REBOOT, last);
 
 				for (i = last + 1; i < post_list_size; i++) {
-					if (gd->flags & GD_FLG_POSTSTOP)
-						break;
 					post_run_single (post_list + i,
 							 test_flags[i],
 							 flags, i);
@@ -319,8 +286,6 @@ int post_run (char *name, int flags)
 			}
 		} else {
 			for (i = 0; i < post_list_size; i++) {
-				if (gd->flags & GD_FLG_POSTSTOP)
-					break;
 				post_run_single (post_list + i,
 						 test_flags[i],
 						 flags, i);
@@ -335,7 +300,6 @@ int post_run (char *name, int flags)
 		}
 
 		if (i < post_list_size) {
-			WATCHDOG_RESET();
 			return post_run_single (post_list + i,
 						test_flags[i],
 						flags, i);
@@ -388,7 +352,7 @@ int post_log (char *format, ...)
 {
 	va_list args;
 	uint i;
-	char printbuffer[CONFIG_SYS_PBSIZE];
+	char printbuffer[CFG_PBSIZE];
 
 	va_start (args, format);
 
@@ -409,7 +373,6 @@ int post_log (char *format, ...)
 	return 0;
 }
 
-#ifndef CONFIG_RELOC_FIXUP_WORKS
 void post_reloc (void)
 {
 	unsigned int i;
@@ -454,7 +417,6 @@ void post_reloc (void)
 		}
 	}
 }
-#endif
 
 
 /*
@@ -466,9 +428,10 @@ void post_reloc (void)
 unsigned long post_time_ms (unsigned long base)
 {
 #ifdef CONFIG_PPC
-	return (unsigned long)(get_ticks () / (get_tbclk () / CONFIG_SYS_HZ)) - base;
+	return (unsigned long)get_ticks () / (get_tbclk () / CFG_HZ) - base;
 #else
-#warning "Not implemented yet"
 	return 0; /* Not implemented yet */
 #endif
 }
+
+#endif /* CONFIG_POST */

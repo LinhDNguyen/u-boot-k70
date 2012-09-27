@@ -1,15 +1,14 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <linux/in.h>
 
 int main (int argc, char *argv[])
 {
 	int s, len, o, port = 6666;
 	char buf[512];
 	struct sockaddr_in addr;
-	socklen_t addr_len = sizeof addr;
+	int addr_len = sizeof addr;
 
 	if (argc > 1)
 		port = atoi (argv[1]);
@@ -30,8 +29,7 @@ int main (int argc, char *argv[])
 		len = recvfrom (s, buf, sizeof buf, 0, (struct sockaddr *) &addr, &addr_len);
 		if (len < 0)
 			break;
-		if (write (1, buf, len) != len)
-			fprintf(stderr, "WARNING: serial characters dropped\n");
+		write (1, buf, len);
 	}
 
 	return 0;

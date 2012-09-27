@@ -28,12 +28,9 @@
 #include <command.h>
 #include <net.h>
 
-/* Allow ports to override the default behavior */
-__attribute__((weak))
-unsigned long do_go_exec (ulong (*entry)(int, char *[]), int argc, char *argv[])
-{
-	return entry (argc, argv);
-}
+#if defined(CONFIG_I386)
+DECLARE_GLOBAL_DATA_PTR;
+#endif
 
 int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -41,7 +38,7 @@ int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	int     rcode = 0;
 
 	if (argc < 2) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -53,7 +50,21 @@ int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	 * pass address parameter as argv[0] (aka command name),
 	 * and all remaining args
 	 */
-	rc = do_go_exec ((void *)addr, argc - 1, argv + 1);
+#if defined(CONFIG_I386)
+	/*
+	 * x86 does not use a dedicated register to pass the pointer
+	 * to the global_data
+	 */
+	argv[0] = (char *)gd;
+#endif
+#if !defined(CONFIG_NIOS)
+	rc = ((ulong (*)(int, char *[]))addr) (--argc, &argv[1]);
+#else
+	/*
+	 * Nios function pointers are address >> 1
+	 */
+	rc = ((ulong (*)(int, char *[]))(addr>>1)) (--argc, &argv[1]);
+#endif
 	if (rc != 0) rcode = 1;
 
 	printf ("## Application terminated, rc = 0x%lX\n", rc);
@@ -63,16 +74,16 @@ int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 /* -------------------------------------------------------------------- */
 
 U_BOOT_CMD(
-	go, CONFIG_SYS_MAXARGS, 1,	do_go,
-	"start application at address 'addr'",
+	go, CFG_MAXARGS, 1,	do_go,
+	"go      - start application at address 'addr'\n",
 	"addr [arg ...]\n    - start application at address 'addr'\n"
-	"      passing 'arg' as arguments"
+	"      passing 'arg' as arguments\n"
 );
 
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 U_BOOT_CMD(
-	reset, 1, 0,	do_reset,
-	"Perform RESET of the CPU",
-	""
+	reset, CFG_MAXARGS, 1,	do_reset,
+	"reset   - Perform RESET of the CPU\n",
+	NULL
 );

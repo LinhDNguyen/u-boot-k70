@@ -1,6 +1,7 @@
 #include <config.h>
 #include <common.h>
 #include <watchdog.h>
+#ifdef CONFIG_BZIP2
 
 /*
  * This file is a modified version of bzlib.c from the bzip2-1.0.2
@@ -1591,11 +1592,9 @@ const char * BZ_API(BZ2_bzerror) (BZFILE *b, int *errnum)
 }
 #endif
 
-void bz_internal_error(int errcode)
-{
-	printf ("BZIP2 internal error %d\n", errcode);
-}
 
 /*-------------------------------------------------------------*/
 /*--- end                                           bzlib.c ---*/
 /*-------------------------------------------------------------*/
+
+#endif /* CONFIG_BZIP2 */

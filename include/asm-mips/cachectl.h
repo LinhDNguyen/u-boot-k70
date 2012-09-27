@@ -1,12 +1,10 @@
 /*
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
+ * cachectl.h -- defines for MIPS cache control system calls
  *
  * Copyright (C) 1994, 1995, 1996 by Ralf Baechle
  */
-#ifndef	_ASM_CACHECTL
-#define	_ASM_CACHECTL
+#ifndef	__ASM_MIPS_CACHECTL
+#define	__ASM_MIPS_CACHECTL
 
 /*
  * Options for cacheflush system call
@@ -23,4 +21,4 @@
 #define CACHEABLE	0	/* make pages cacheable */
 #define UNCACHEABLE	1	/* make pages uncacheable */
 
-#endif	/* _ASM_CACHECTL */
+#endif	/* __ASM_MIPS_CACHECTL */

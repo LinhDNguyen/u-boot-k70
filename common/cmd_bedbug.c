@@ -13,6 +13,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if (CONFIG_COMMANDS & CFG_CMD_BEDBUG)
+
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
 extern void show_regs __P ((struct pt_regs *));
 extern int run_command __P ((const char *, int));
 extern char console_buffer[];
@@ -85,7 +91,7 @@ int do_bedbug_dis (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	len = dis_last_len;
 
 	if (argc < 2) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -107,8 +113,8 @@ int do_bedbug_dis (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_dis */
 
 U_BOOT_CMD (ds, 3, 1, do_bedbug_dis,
-	    "disassemble memory",
-	    "ds <address> [# instructions]");
+	    "ds      - disassemble memory\n",
+	    "ds <address> [# instructions]\n");
 
 /* ======================================================================
  * Entry point from the interpreter to the assembler.  Assembles
@@ -126,7 +132,7 @@ int do_bedbug_asm (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	int rcode = 0;
 
 	if (argc < 2) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -160,7 +166,7 @@ int do_bedbug_asm (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_asm */
 
 U_BOOT_CMD (as, 2, 0, do_bedbug_asm,
-	    "assemble memory", "as <address>");
+	    "as      - assemble memory\n", "as <address>\n");
 
 /* ======================================================================
  * Used to set a break point from the interpreter.  Simply calls into the
@@ -177,11 +183,11 @@ int do_bedbug_break (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_break */
 
 U_BOOT_CMD (break, 3, 0, do_bedbug_break,
-	    "set or clear a breakpoint",
+	    "break   - set or clear a breakpoint\n",
 	    " - Set or clear a breakpoint\n"
 	    "break <address> - Break at an address\n"
 	    "break off <bp#> - Disable breakpoint.\n"
-	    "break show      - List breakpoints.");
+	    "break show      - List breakpoints.\n");
 
 /* ======================================================================
  * Called from the debug interrupt routine.  Simply calls the CPU-specific
@@ -214,7 +220,7 @@ void bedbug_main_loop (unsigned long addr, struct pt_regs *regs)
 	int flag;		/* Command flags          */
 	int rc = 0;		/* Result from run_command */
 	char prompt_str[20];	/* Prompt string          */
-	static char lastcommand[CONFIG_SYS_CBSIZE] = { 0 };	/* previous command */
+	static char lastcommand[CFG_CBSIZE] = { 0 };	/* previous command */
 	/* -------------------------------------------------- */
 
 	if (bug_ctx.clear)
@@ -277,8 +283,8 @@ int do_bedbug_continue (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_continue */
 
 U_BOOT_CMD (continue, 1, 0, do_bedbug_continue,
-	    "continue from a breakpoint",
-	    "");
+	    "continue- continue from a breakpoint\n",
+	    " - continue from a breakpoint.\n");
 
 /* ======================================================================
  * Interpreter command to continue to the next instruction, stepping into
@@ -308,8 +314,8 @@ int do_bedbug_step (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_step */
 
 U_BOOT_CMD (step, 1, 1, do_bedbug_step,
-	    "single step execution.",
-	    "");
+	    "step    - single step execution.\n",
+	    " - single step execution.\n");
 
 /* ======================================================================
  * Interpreter command to continue to the next instruction, stepping over
@@ -339,8 +345,8 @@ int do_bedbug_next (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_next */
 
 U_BOOT_CMD (next, 1, 1, do_bedbug_next,
-	    "single step execution, stepping over subroutines.",
-	    "");
+	    "next    - single step execution, stepping over subroutines.\n",
+	    " - single step execution, stepping over subroutines.\n");
 
 /* ======================================================================
  * Interpreter command to print the current stack.  This assumes an EABI
@@ -384,8 +390,8 @@ int do_bedbug_stack (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_stack */
 
 U_BOOT_CMD (where, 1, 1, do_bedbug_stack,
-	    "Print the running stack.",
-	    "");
+	    "where   - Print the running stack.\n",
+	    " - Print the running stack.\n");
 
 /* ======================================================================
  * Interpreter command to dump the registers.  Calls the CPU-specific
@@ -405,8 +411,9 @@ int do_bedbug_rdump (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }				/* do_bedbug_rdump */
 
 U_BOOT_CMD (rdump, 1, 1, do_bedbug_rdump,
-	    "Show registers.", "");
+	    "rdump   - Show registers.\n", " - Show registers.\n");
 /* ====================================================================== */
+#endif /* CFG_CMD_BEDBUG */
 
 
 /*

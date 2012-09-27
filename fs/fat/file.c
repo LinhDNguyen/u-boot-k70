@@ -32,6 +32,8 @@
 #include <linux/stat.h>
 #include <linux/time.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_FAT)
+
 /* Supported filesystems */
 static const struct filesystem filesystems[] = {
 	{ file_fat_detectfs,  file_fat_ls,  file_fat_read,  "FAT" },
@@ -202,3 +204,5 @@ file_read(const char *filename, void *buffer, unsigned long maxsize)
 
 	return filesystems[current_filesystem].read(arg, buffer, maxsize);
 }
+
+#endif /* #if (CONFIG_COMMANDS & CFG_CMD_FAT) */

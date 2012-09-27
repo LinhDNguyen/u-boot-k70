@@ -28,7 +28,8 @@
 #include <common.h>
 #include <command.h>
 
-#if defined(CONFIG_8xx) || defined(CONFIG_8260)
+#if (CONFIG_COMMANDS & CFG_CMD_IMMAP) && \
+    (defined(CONFIG_8xx) || defined(CONFIG_8260))
 
 #if defined(CONFIG_8xx)
 #include <asm/8xx_immap.h>
@@ -40,7 +41,9 @@
 #include <asm/iopin_8260.h>
 #endif
 
+#if defined(CONFIG_8xx) || defined(CONFIG_8260)
 DECLARE_GLOBAL_DATA_PTR;
+#endif
 
 static void
 unimplemented ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -52,7 +55,7 @@ unimplemented ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int
 do_siuinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 
 #if defined(CONFIG_8xx)
 	volatile sysconf8xx_t *sc = &immap->im_siu_conf;
@@ -83,7 +86,7 @@ do_siuinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int
 do_memcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 
 #if defined(CONFIG_8xx)
 	volatile memctl8xx_t *memctl = &immap->im_memctl;
@@ -151,7 +154,7 @@ do_icinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int
 do_carinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 
 #if defined(CONFIG_8xx)
 	volatile car8xx_t *car = &immap->im_clkrst;
@@ -235,7 +238,7 @@ static void binary (char *label, uint value, int nbits)
 int
 do_iopinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 
 #if defined(CONFIG_8xx)
 	volatile iop8xx_t *iop = &immap->im_ioport;
@@ -500,7 +503,7 @@ static void prbrg (int n, uint val)
 int
 do_brginfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 
 #if defined(CONFIG_8xx)
 	volatile cpm8xx_t *cp = &immap->im_cpm;
@@ -524,7 +527,7 @@ do_brginfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int
 do_i2cinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 
 #if defined(CONFIG_8xx)
 	volatile i2c8xx_t *i2c = &immap->im_i2c;
@@ -614,106 +617,107 @@ do_mccinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	siuinfo,	1,	1,	do_siuinfo,
-	"print System Interface Unit (SIU) registers",
-	""
+	"siuinfo - print System Interface Unit (SIU) registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	memcinfo,	1,	1,	do_memcinfo,
-	"print Memory Controller registers",
-	""
+	"memcinfo- print Memory Controller registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	sitinfo,	1,	1,	do_sitinfo,
-	"print System Integration Timers (SIT) registers",
-	""
+	"sitinfo - print System Integration Timers (SIT) registers\n",
+	NULL
 );
 
 #ifdef CONFIG_8260
 U_BOOT_CMD(
 	icinfo,	1,	1,	do_icinfo,
-	"print Interrupt Controller registers",
-	""
+	"icinfo  - print Interrupt Controller registers\n",
+	NULL
 );
 #endif
 
 U_BOOT_CMD(
 	carinfo,	1,	1,	do_carinfo,
-	"print Clocks and Reset registers",
-	""
+	"carinfo - print Clocks and Reset registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	iopinfo,	1,	1,	do_iopinfo,
-	"print I/O Port registers",
-	""
+	"iopinfo - print I/O Port registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	iopset,	5,	0,	do_iopset,
-	"set I/O Port registers",
+	"iopset  - set I/O Port registers\n",
 	"PORT PIN CMD VALUE\nPORT: A-D, PIN: 0-31, CMD: [dat|dir|odr|sor], VALUE: 0|1"
 );
 
 U_BOOT_CMD(
 	dmainfo,	1,	1,	do_dmainfo,
-	"print SDMA/IDMA registers",
-	""
+	"dmainfo - print SDMA/IDMA registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	fccinfo,	1,	1,	do_fccinfo,
-	"print FCC registers",
-	""
+	"fccinfo - print FCC registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	brginfo,	1,	1,	do_brginfo,
-	"print Baud Rate Generator (BRG) registers",
-	""
+	"brginfo - print Baud Rate Generator (BRG) registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	i2cinfo,	1,	1,	do_i2cinfo,
-	"print I2C registers",
-	""
+	"i2cinfo - print I2C registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	sccinfo,	1,	1,	do_sccinfo,
-	"print SCC registers",
-	""
+	"sccinfo - print SCC registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	smcinfo,	1,	1,	do_smcinfo,
-	"print SMC registers",
-	""
+	"smcinfo - print SMC registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	spiinfo,	1,	1,	do_spiinfo,
-	"print Serial Peripheral Interface (SPI) registers",
-	""
+	"spiinfo - print Serial Peripheral Interface (SPI) registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	muxinfo,	1,	1,	do_muxinfo,
-	"print CPM Multiplexing registers",
-	""
+	"muxinfo - print CPM Multiplexing registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	siinfo,	1,	1,	do_siinfo,
-	"print Serial Interface (SI) registers",
-	""
+	"siinfo  - print Serial Interface (SI) registers\n",
+	NULL
 );
 
 U_BOOT_CMD(
 	mccinfo,	1,	1,	do_mccinfo,
-	"print MCC registers",
-	""
+	"mccinfo - print MCC registers\n",
+	NULL
 );
 
-#endif
+
+#endif	/* CFG_CMD_IMMAP && (CONFIG_8xx || CONFIG_8260) */

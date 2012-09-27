@@ -1,7 +1,7 @@
 /*
  * U-boot - bitops.h Routines for bit operations
  *
- * Copyright (c) 2005-2007 Analog Devices Inc.
+ * Copyright (c) 2005 blackfin.uclinux.org
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef _BLACKFIN_BITOPS_H
@@ -59,27 +59,26 @@ static __inline__ unsigned long ffz(unsigned long word)
 
 static __inline__ void set_bit(int nr, volatile void *addr)
 {
-	int *a = (int *)addr;
+	int *a = (int *) addr;
 	int mask;
 	unsigned long flags;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	*a |= mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 }
 
 static __inline__ void __set_bit(int nr, volatile void *addr)
 {
-	int *a = (int *)addr;
+	int *a = (int *) addr;
 	int mask;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
 	*a |= mask;
 }
-#define PLATFORM__SET_BIT
 
 /*
  * clear_bit() doesn't provide any barrier for the compiler.
@@ -89,33 +88,33 @@ static __inline__ void __set_bit(int nr, volatile void *addr)
 
 static __inline__ void clear_bit(int nr, volatile void *addr)
 {
-	int *a = (int *)addr;
+	int *a = (int *) addr;
 	int mask;
 	unsigned long flags;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	*a &= ~mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 }
 
 static __inline__ void change_bit(int nr, volatile void *addr)
 {
 	int mask, flags;
-	unsigned long *ADDR = (unsigned long *)addr;
+	unsigned long *ADDR = (unsigned long *) addr;
 
 	ADDR += nr >> 5;
 	mask = 1 << (nr & 31);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	*ADDR ^= mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 }
 
 static __inline__ void __change_bit(int nr, volatile void *addr)
 {
 	int mask;
-	unsigned long *ADDR = (unsigned long *)addr;
+	unsigned long *ADDR = (unsigned long *) addr;
 
 	ADDR += nr >> 5;
 	mask = 1 << (nr & 31);
@@ -125,15 +124,15 @@ static __inline__ void __change_bit(int nr, volatile void *addr)
 static __inline__ int test_and_set_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
-	volatile unsigned int *a = (volatile unsigned int *)addr;
+	volatile unsigned int *a = (volatile unsigned int *) addr;
 	unsigned long flags;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	retval = (mask & *a) != 0;
 	*a |= mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 
 	return retval;
 }
@@ -141,7 +140,7 @@ static __inline__ int test_and_set_bit(int nr, volatile void *addr)
 static __inline__ int __test_and_set_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
-	volatile unsigned int *a = (volatile unsigned int *)addr;
+	volatile unsigned int *a = (volatile unsigned int *) addr;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
@@ -153,15 +152,15 @@ static __inline__ int __test_and_set_bit(int nr, volatile void *addr)
 static __inline__ int test_and_clear_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
-	volatile unsigned int *a = (volatile unsigned int *)addr;
+	volatile unsigned int *a = (volatile unsigned int *) addr;
 	unsigned long flags;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	retval = (mask & *a) != 0;
 	*a &= ~mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 
 	return retval;
 }
@@ -169,7 +168,7 @@ static __inline__ int test_and_clear_bit(int nr, volatile void *addr)
 static __inline__ int __test_and_clear_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
-	volatile unsigned int *a = (volatile unsigned int *)addr;
+	volatile unsigned int *a = (volatile unsigned int *) addr;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
@@ -181,15 +180,15 @@ static __inline__ int __test_and_clear_bit(int nr, volatile void *addr)
 static __inline__ int test_and_change_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
-	volatile unsigned int *a = (volatile unsigned int *)addr;
+	volatile unsigned int *a = (volatile unsigned int *) addr;
 	unsigned long flags;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	retval = (mask & *a) != 0;
 	*a ^= mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 
 	return retval;
 }
@@ -197,7 +196,7 @@ static __inline__ int test_and_change_bit(int nr, volatile void *addr)
 static __inline__ int __test_and_change_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
-	volatile unsigned int *a = (volatile unsigned int *)addr;
+	volatile unsigned int *a = (volatile unsigned int *) addr;
 
 	a += nr >> 5;
 	mask = 1 << (nr & 0x1f);
@@ -209,15 +208,16 @@ static __inline__ int __test_and_change_bit(int nr, volatile void *addr)
 /*
  * This routine doesn't need to be atomic.
  */
-static __inline__ int __constant_test_bit(int nr, const volatile void *addr)
+static __inline__ int __constant_test_bit(int nr,
+					  const volatile void *addr)
 {
 	return ((1UL << (nr & 31)) &
-		(((const volatile unsigned int *)addr)[nr >> 5])) != 0;
+		(((const volatile unsigned int *) addr)[nr >> 5])) != 0;
 }
 
 static __inline__ int __test_bit(int nr, volatile void *addr)
 {
-	int *a = (int *)addr;
+	int *a = (int *) addr;
 	int mask;
 
 	a += nr >> 5;
@@ -235,7 +235,7 @@ static __inline__ int __test_bit(int nr, volatile void *addr)
 
 static __inline__ int find_next_zero_bit(void *addr, int size, int offset)
 {
-	unsigned long *p = ((unsigned long *)addr) + (offset >> 5);
+	unsigned long *p = ((unsigned long *) addr) + (offset >> 5);
 	unsigned long result = offset & ~31UL;
 	unsigned long tmp;
 
@@ -270,6 +270,14 @@ static __inline__ int find_next_zero_bit(void *addr, int size, int offset)
 }
 
 /*
+ * ffs: find first bit set. This is defined the same way as
+ * the libc and compiler builtin ffs routines, therefore
+ * differs in spirit from the above ffz (man ffs).
+ */
+
+#define ffs(x)		generic_ffs(x)
+
+/*
  * hweightN: returns the hamming weight (i.e. the number
  * of bits set) of a N-bit word
  */
@@ -282,14 +290,14 @@ static __inline__ int ext2_set_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
 	unsigned long flags;
-	volatile unsigned char *ADDR = (unsigned char *)addr;
+	volatile unsigned char *ADDR = (unsigned char *) addr;
 
 	ADDR += nr >> 3;
 	mask = 1 << (nr & 0x07);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	retval = (mask & *ADDR) != 0;
 	*ADDR |= mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 	return retval;
 }
 
@@ -297,21 +305,21 @@ static __inline__ int ext2_clear_bit(int nr, volatile void *addr)
 {
 	int mask, retval;
 	unsigned long flags;
-	volatile unsigned char *ADDR = (unsigned char *)addr;
+	volatile unsigned char *ADDR = (unsigned char *) addr;
 
 	ADDR += nr >> 3;
 	mask = 1 << (nr & 0x07);
-	local_irq_save(flags);
+	save_and_cli(flags);
 	retval = (mask & *ADDR) != 0;
 	*ADDR &= ~mask;
-	local_irq_restore(flags);
+	restore_flags(flags);
 	return retval;
 }
 
 static __inline__ int ext2_test_bit(int nr, const volatile void *addr)
 {
 	int mask;
-	const volatile unsigned char *ADDR = (const unsigned char *)addr;
+	const volatile unsigned char *ADDR = (const unsigned char *) addr;
 
 	ADDR += nr >> 3;
 	mask = 1 << (nr & 0x07);
@@ -323,9 +331,10 @@ static __inline__ int ext2_test_bit(int nr, const volatile void *addr)
 
 static __inline__ unsigned long ext2_find_next_zero_bit(void *addr,
 							unsigned long size,
-							unsigned long offset)
+							unsigned long
+							offset)
 {
-	unsigned long *p = ((unsigned long *)addr) + (offset >> 5);
+	unsigned long *p = ((unsigned long *) addr) + (offset >> 5);
 	unsigned long result = offset & ~31UL;
 	unsigned long tmp;
 

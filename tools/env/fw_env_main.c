@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2000-2008
+ * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -25,16 +25,15 @@
  * Command line user interface to firmware (=U-Boot) environment.
  *
  * Implements:
- *	fw_printenv [[ -n name ] | [ name ... ]]
- *              - prints the value of a single environment variable
- *                "name", the ``name=value'' pairs of one or more
- *                environment variables "name", or the whole
- *                environment if no names are specified.
+ *	fw_printenv [ name ... ]
+ *		- prints the values of the environment variables
+ *		  "name", or the whole environment if no names are
+ *		  specified
  *	fw_setenv name [ value ... ]
  *		- If a name without any values is given, the variable
  *		  with this name is deleted from the environment;
  *		  otherwise, all "value" arguments are concatenated,
- *		  separated by single blank characters, and the
+ *		  separated by sinlge blank characters, and the
  *		  resulting string is assigned to the environment
  *		  variable "name"
  */
@@ -59,18 +58,16 @@ main(int argc, char *argv[])
 
 	if (strcmp(cmdname, CMD_PRINTENV) == 0) {
 
-		if (fw_printenv (argc, argv) != 0)
-			return (EXIT_FAILURE);
+			fw_printenv (argc, argv);
 
-		return (EXIT_SUCCESS);
+			return (EXIT_SUCCESS);
 
 	} else if (strcmp(cmdname, CMD_SETENV) == 0) {
 
-		if (fw_setenv (argc, argv) != 0)
-			return (EXIT_FAILURE);
+			if (fw_setenv (argc, argv) != 0)
+				return (EXIT_FAILURE);
 
-		return (EXIT_SUCCESS);
-
+			return (EXIT_SUCCESS);
 	}
 
 	fprintf (stderr,

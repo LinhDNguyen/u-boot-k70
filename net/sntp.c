@@ -12,7 +12,9 @@
 
 #include "sntp.h"
 
-#define SNTP_TIMEOUT 10000UL
+#if ((CONFIG_COMMANDS & CFG_CMD_NET) && (CONFIG_COMMANDS & CFG_CMD_SNTP))
+
+#define SNTP_TIMEOUT 10
 
 static int SntpOurPort;
 
@@ -23,7 +25,7 @@ SntpSend (void)
 	int pktlen = SNTP_PACKET_LEN;
 	int sport;
 
-	debug("%s\n", __func__);
+	debug ("%s\n", __FUNCTION__);
 
 	memset (&pkt, 0, sizeof(pkt));
 
@@ -54,7 +56,7 @@ SntpHandler (uchar *pkt, unsigned dest, unsigned src, unsigned len)
 	struct rtc_time tm;
 	ulong seconds;
 
-	debug("%s\n", __func__);
+	debug ("%s\n", __FUNCTION__);
 
 	if (dest != SntpOurPort) return;
 
@@ -65,7 +67,7 @@ SntpHandler (uchar *pkt, unsigned dest, unsigned src, unsigned len)
 	memcpy (&seconds, &rpktp->transmit_timestamp, sizeof(ulong));
 
 	to_tm(ntohl(seconds) - 2208988800UL + NetTimeOffset, &tm);
-#if defined(CONFIG_CMD_DATE)
+#if (CONFIG_COMMANDS & CFG_CMD_DATE)
 	rtc_set (&tm);
 #endif
 	printf ("Date: %4d-%02d-%02d Time: %2d:%02d:%02d\n",
@@ -78,11 +80,13 @@ SntpHandler (uchar *pkt, unsigned dest, unsigned src, unsigned len)
 void
 SntpStart (void)
 {
-	debug("%s\n", __func__);
+	debug ("%s\n", __FUNCTION__);
 
-	NetSetTimeout (SNTP_TIMEOUT, SntpTimeout);
+	NetSetTimeout (SNTP_TIMEOUT * CFG_HZ, SntpTimeout);
 	NetSetHandler(SntpHandler);
 	memset (NetServerEther, 0, 6);
 
 	SntpSend ();
 }
+
+#endif /* CONFIG_COMMANDS & CFG_CMD_SNTP */

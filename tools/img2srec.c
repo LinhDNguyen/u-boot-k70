@@ -52,8 +52,6 @@
 |  INCLUDES
 |*************************************************************************/
 
-#include "os_support.h"
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,23 +61,66 @@
 #include <unistd.h>
 #include <errno.h>
 
+extern int errno;
+
+/*************************************************************************
+|  DEFINES
+|*************************************************************************/
+
+#define FALSE           0
+#define TRUE            1
+
+/*************************************************************************
+|  MACROS
+|*************************************************************************/
+
+/*************************************************************************
+|  TYPEDEFS
+|*************************************************************************/
+
+typedef uint8_t   CHAR;
+typedef uint8_t   BYTE;
+typedef uint16_t  WORD;
+typedef uint32_t  DWORD;
+typedef int       BOOL;
+
+/*************************************************************************
+|  LOCALS
+|*************************************************************************/
+
+/*************************************************************************
+|  PROTOTYPES
+|*************************************************************************/
+
+static char *ExtractHex(DWORD *value, char *getPtr);
+static char *ExtractDecimal(DWORD *value, char *getPtr);
+static void ExtractNumber(DWORD *value, char *getPtr);
+static BYTE *ExtractWord(WORD *value, BYTE *buffer);
+static BYTE *ExtractLong(DWORD *value, BYTE *buffer);
+static BYTE *ExtractBlock(WORD count, BYTE *data, BYTE *buffer);
+static char *WriteHex(char *pa, BYTE value, WORD *pCheckSum);
+static char *BuildSRecord(char *pa, WORD sType, DWORD addr,
+			  const BYTE *data, int nCount);
+static void ConvertELF(char *fileName, DWORD loadOffset);
+int main(int argc, char *argv[]);
+
 /*************************************************************************
 |  FUNCTIONS
 |*************************************************************************/
 
-static char* ExtractHex (uint32_t* value,  char* getPtr)
+static char* ExtractHex (DWORD* value,  char* getPtr)
 {
-  uint32_t num;
-  uint32_t digit;
-  uint8_t  c;
+  DWORD num;
+  DWORD digit;
+  BYTE  c;
 
   while (*getPtr == ' ') getPtr++;
   num = 0;
   for (;;) {
     c = *getPtr;
-    if      ((c >= '0') && (c <= '9')) digit = (uint32_t)(c - '0');
-    else if ((c >= 'A') && (c <= 'F')) digit = (uint32_t)(c - 'A' + 10);
-    else if ((c >= 'a') && (c <= 'f')) digit = (uint32_t)(c - 'a' + 10);
+    if      ((c >= '0') && (c <= '9')) digit = (DWORD)(c - '0');
+    else if ((c >= 'A') && (c <= 'F')) digit = (DWORD)(c - 'A' + 10);
+    else if ((c >= 'a') && (c <= 'f')) digit = (DWORD)(c - 'a' + 10);
     else break;
     num <<= 4;
     num += digit;
@@ -89,17 +130,17 @@ static char* ExtractHex (uint32_t* value,  char* getPtr)
   return getPtr;
 } /* ExtractHex */
 
-static char* ExtractDecimal (uint32_t* value,  char* getPtr)
+static char* ExtractDecimal (DWORD* value,  char* getPtr)
 {
-  uint32_t num;
-  uint32_t digit;
-  uint8_t  c;
+  DWORD num;
+  DWORD digit;
+  BYTE  c;
 
   while (*getPtr == ' ') getPtr++;
   num = 0;
   for (;;) {
     c = *getPtr;
-    if      ((c >= '0') && (c <= '9')) digit = (uint32_t)(c - '0');
+    if      ((c >= '0') && (c <= '9')) digit = (DWORD)(c - '0');
     else break;
     num *= 10;
     num += digit;
@@ -110,13 +151,13 @@ static char* ExtractDecimal (uint32_t* value,  char* getPtr)
 } /* ExtractDecimal */
 
 
-static void ExtractNumber (uint32_t* value,  char* getPtr)
+static void ExtractNumber (DWORD* value,  char* getPtr)
 {
-  bool  neg = false;;
+  BOOL  neg = FALSE;;
 
   while (*getPtr == ' ') getPtr++;
   if (*getPtr == '-') {
-    neg = true;
+    neg = TRUE;
     getPtr++;
   } /* if */
   if ((*getPtr == '0') && ((*(getPtr+1) == 'x') || (*(getPtr+1) == 'X'))) {
@@ -130,38 +171,38 @@ static void ExtractNumber (uint32_t* value,  char* getPtr)
 } /* ExtractNumber */
 
 
-static uint8_t* ExtractWord(uint16_t* value, uint8_t* buffer)
+static BYTE* ExtractWord(WORD* value, BYTE* buffer)
 {
-  uint16_t x;
-  x = (uint16_t)*buffer++;
-  x = (x<<8) + (uint16_t)*buffer++;
+  WORD x;
+  x = (WORD)*buffer++;
+  x = (x<<8) + (WORD)*buffer++;
   *value = x;
   return buffer;
 } /* ExtractWord */
 
 
-static uint8_t* ExtractLong(uint32_t* value, uint8_t* buffer)
+static BYTE* ExtractLong(DWORD* value, BYTE* buffer)
 {
-  uint32_t x;
-  x = (uint32_t)*buffer++;
-  x = (x<<8) + (uint32_t)*buffer++;
-  x = (x<<8) + (uint32_t)*buffer++;
-  x = (x<<8) + (uint32_t)*buffer++;
+  DWORD x;
+  x = (DWORD)*buffer++;
+  x = (x<<8) + (DWORD)*buffer++;
+  x = (x<<8) + (DWORD)*buffer++;
+  x = (x<<8) + (DWORD)*buffer++;
   *value = x;
   return buffer;
 } /* ExtractLong */
 
 
-static uint8_t* ExtractBlock(uint16_t count, uint8_t* data, uint8_t* buffer)
+static BYTE* ExtractBlock(WORD count, BYTE* data, BYTE* buffer)
 {
   while (count--) *data++ = *buffer++;
   return buffer;
 } /* ExtractBlock */
 
 
-static char* WriteHex(char* pa, uint8_t value, uint16_t* pCheckSum)
+static char* WriteHex(char* pa, BYTE value, WORD* pCheckSum)
 {
-  uint16_t  temp;
+  WORD  temp;
 
   static  char ByteToHex[] = "0123456789ABCDEF";
 
@@ -174,13 +215,13 @@ static char* WriteHex(char* pa, uint8_t value, uint16_t* pCheckSum)
 }
 
 
-static char* BuildSRecord(char* pa, uint16_t sType, uint32_t addr,
-			  const uint8_t* data, int nCount)
+static char* BuildSRecord(char* pa, WORD sType, DWORD addr,
+			  const BYTE* data, int nCount)
 {
-  uint16_t  addrLen;
-  uint16_t  sRLen;
-  uint16_t  checkSum;
-  uint16_t  i;
+  WORD  addrLen;
+  WORD  sRLen;
+  WORD  checkSum;
+  WORD  i;
 
   switch (sType) {
   case 0:
@@ -204,11 +245,11 @@ static char* BuildSRecord(char* pa, uint16_t sType, uint32_t addr,
   *pa++ = (char)(sType + '0');
   sRLen = addrLen + nCount + 1;
   checkSum = 0;
-  pa = WriteHex(pa, (uint8_t)sRLen, &checkSum);
+  pa = WriteHex(pa, (BYTE)sRLen, &checkSum);
 
   /* Write address field */
   for (i = 1; i <= addrLen; i++) {
-    pa = WriteHex(pa, (uint8_t)(addr >> (8 * (addrLen - i))), &checkSum);
+    pa = WriteHex(pa, (BYTE)(addr >> (8 * (addrLen - i))), &checkSum);
   } /* for */
 
   /* Write code/data fields */
@@ -218,25 +259,25 @@ static char* BuildSRecord(char* pa, uint16_t sType, uint32_t addr,
 
   /* Write checksum field */
   checkSum = ~checkSum;
-  pa = WriteHex(pa, (uint8_t)checkSum, &checkSum);
+  pa = WriteHex(pa, (BYTE)checkSum, &checkSum);
   *pa++ = '\0';
   return pa;
 }
 
 
-static void ConvertELF(char* fileName, uint32_t loadOffset)
+static void ConvertELF(char* fileName, DWORD loadOffset)
 {
   FILE*         file;
   int           i;
   int           rxCount;
-  uint8_t          rxBlock[1024];
-  uint32_t         loadSize;
-  uint32_t         firstAddr;
-  uint32_t         loadAddr;
-  uint32_t         loadDiff = 0;
+  BYTE          rxBlock[1024];
+  DWORD         loadSize;
+  DWORD         firstAddr;
+  DWORD         loadAddr;
+  DWORD         loadDiff = 0;
   Elf32_Ehdr    elfHeader;
   Elf32_Shdr    sectHeader[32];
-  uint8_t*         getPtr;
+  BYTE*         getPtr;
   char          srecLine[128];
   char		*hdr_name;
 
@@ -252,11 +293,11 @@ static void ConvertELF(char* fileName, uint32_t loadOffset)
   getPtr = ExtractBlock(sizeof elfHeader.e_ident, elfHeader.e_ident, rxBlock);
   getPtr = ExtractWord(&elfHeader.e_type, getPtr);
   getPtr = ExtractWord(&elfHeader.e_machine, getPtr);
-  getPtr = ExtractLong((uint32_t *)&elfHeader.e_version, getPtr);
-  getPtr = ExtractLong((uint32_t *)&elfHeader.e_entry, getPtr);
-  getPtr = ExtractLong((uint32_t *)&elfHeader.e_phoff, getPtr);
-  getPtr = ExtractLong((uint32_t *)&elfHeader.e_shoff, getPtr);
-  getPtr = ExtractLong((uint32_t *)&elfHeader.e_flags, getPtr);
+  getPtr = ExtractLong((DWORD *)&elfHeader.e_version, getPtr);
+  getPtr = ExtractLong((DWORD *)&elfHeader.e_entry, getPtr);
+  getPtr = ExtractLong((DWORD *)&elfHeader.e_phoff, getPtr);
+  getPtr = ExtractLong((DWORD *)&elfHeader.e_shoff, getPtr);
+  getPtr = ExtractLong((DWORD *)&elfHeader.e_flags, getPtr);
   getPtr = ExtractWord(&elfHeader.e_ehsize, getPtr);
   getPtr = ExtractWord(&elfHeader.e_phentsize, getPtr);
   getPtr = ExtractWord(&elfHeader.e_phnum, getPtr);
@@ -279,16 +320,16 @@ static void ConvertELF(char* fileName, uint32_t loadOffset)
   fseek(file, elfHeader.e_shoff, SEEK_SET);
   for (i = 0; i < elfHeader.e_shnum; i++) {
     rxCount = fread(rxBlock, 1, sizeof sectHeader[0], file);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_name, rxBlock);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_type, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_flags, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_addr, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_offset, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_size, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_link, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_info, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_addralign, getPtr);
-    getPtr = ExtractLong((uint32_t *)&sectHeader[i].sh_entsize, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_name, rxBlock);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_type, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_flags, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_addr, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_offset, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_size, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_link, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_info, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_addralign, getPtr);
+    getPtr = ExtractLong((DWORD *)&sectHeader[i].sh_entsize, getPtr);
     if (rxCount != sizeof sectHeader[0]) {
       fclose(file);
       fprintf (stderr, "*** illegal file format\n");
@@ -302,7 +343,7 @@ static void ConvertELF(char* fileName, uint32_t loadOffset)
     ++hdr_name;
   }
   /* write start record */
-  (void)BuildSRecord(srecLine, 0, 0, (uint8_t *)hdr_name, strlen(hdr_name));
+  (void)BuildSRecord(srecLine, 0, 0, (BYTE *)hdr_name, strlen(hdr_name));
   printf("%s\r\n",srecLine);
 
   /* write data records */
@@ -355,7 +396,7 @@ static void ConvertELF(char* fileName, uint32_t loadOffset)
 
 int main( int argc, char *argv[ ])
 {
-  uint32_t offset;
+  DWORD offset;
 
   if (argc == 2) {
     ConvertELF(argv[1], 0);

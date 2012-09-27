@@ -29,8 +29,48 @@
 #include <s_record.h>
 #include <net.h>
 #include <ata.h>
-#include <part.h>
+
+#if (CONFIG_COMMANDS & CFG_CMD_FAT)
+
+#undef	DEBUG
+
 #include <fat.h>
+
+
+block_dev_desc_t *get_dev (char* ifname, int dev)
+{
+#if (CONFIG_COMMANDS & CFG_CMD_IDE)
+	if (strncmp(ifname,"ide",3)==0) {
+		extern block_dev_desc_t * ide_get_dev(int dev);
+		return(ide_get_dev(dev));
+	}
+#endif
+#if (CONFIG_COMMANDS & CFG_CMD_SCSI)
+	if (strncmp(ifname,"scsi",4)==0) {
+		extern block_dev_desc_t * scsi_get_dev(int dev);
+		return(scsi_get_dev(dev));
+	}
+#endif
+#if ((CONFIG_COMMANDS & CFG_CMD_USB) && defined(CONFIG_USB_STORAGE))
+	if (strncmp(ifname,"usb",3)==0) {
+		extern block_dev_desc_t * usb_stor_get_dev(int dev);
+		return(usb_stor_get_dev(dev));
+	}
+#endif
+#if defined(CONFIG_MMC)
+	if (strncmp(ifname,"mmc",3)==0) {
+		extern block_dev_desc_t *  mmc_get_dev(int dev);
+		return(mmc_get_dev(dev));
+	}
+#endif
+#if defined(CONFIG_SYSTEMACE)
+	if (strcmp(ifname,"ace")==0) {
+		extern block_dev_desc_t *  systemace_get_dev(int dev);
+		return(systemace_get_dev(dev));
+	}
+#endif
+	return NULL;
+}
 
 
 int do_fat_fsload (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -88,10 +128,10 @@ int do_fat_fsload (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	fatload,	6,	0,	do_fat_fsload,
-	"load binary file from a dos filesystem",
+	"fatload - load binary file from a dos filesystem\n",
 	"<interface> <dev[:part]>  <addr> <filename> [bytes]\n"
 	"    - load binary file 'filename' from 'dev' on 'interface'\n"
-	"      to address 'addr' from dos filesystem"
+	"      to address 'addr' from dos filesystem\n"
 );
 
 int do_fat_ls (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -136,9 +176,9 @@ int do_fat_ls (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	fatls,	4,	1,	do_fat_ls,
-	"list files in a directory (default /)",
+	"fatls   - list files in a directory (default /)\n",
 	"<interface> <dev[:part]> [directory]\n"
-	"    - list files from 'dev' on 'interface' in a 'directory'"
+	"    - list files from 'dev' on 'interface' in a 'directory'\n"
 );
 
 int do_fat_fsinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -174,9 +214,9 @@ int do_fat_fsinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	fatinfo,	3,	1,	do_fat_fsinfo,
-	"print information about filesystem",
+	"fatinfo - print information about filesystem\n",
 	"<interface> <dev[:part]>\n"
-	"    - print information about filesystem from 'dev' on 'interface'"
+	"    - print information about filesystem from 'dev' on 'interface'\n"
 );
 
 #ifdef NOT_IMPLEMENTED_YET
@@ -188,7 +228,7 @@ int find_fat_partition (void)
 	unsigned char *part_table;
 	unsigned char buffer[ATA_BLOCKSIZE];
 
-	for (i = 0; i < CONFIG_SYS_IDE_MAXDEVICE; i++) {
+	for (i = 0; i < CFG_IDE_MAXDEVICE; i++) {
 		dev_desc = ide_get_dev (i);
 		if (!dev_desc) {
 			debug ("couldn't get ide device!\n");
@@ -318,3 +358,5 @@ void hexdump (int cnt, unsigned char *data)
 	}
 }
 #endif	/* NOT_IMPLEMENTED_YET */
+
+#endif	/* CFG_CMD_FAT */

@@ -24,6 +24,8 @@
 
 #include <common.h>
 #include <config.h>
+
+#if (CONFIG_COMMANDS & CFG_CMD_FDOS)
 #include <linux/ctype.h>
 
 #include "dos.h"
@@ -350,3 +352,6 @@ static char *conv_name (char *name, char *ext, char Case, char *ans)
     }
     return (ans);
 }
+
+
+#endif

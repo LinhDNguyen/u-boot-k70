@@ -29,6 +29,8 @@
 #include <config.h>
 #include <command.h>
 
+#if defined(CONFIG_4xx) && (CONFIG_COMMANDS & CFG_CMD_SETGETDCR)
+
 unsigned long get_dcr (unsigned short);
 unsigned long set_dcr (unsigned short, unsigned long);
 
@@ -45,7 +47,7 @@ int do_getdcr ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 
 	/* Validate arguments */
 	if (argc < 2) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -74,7 +76,7 @@ int do_setdcr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 	/* Validate arguments */
 	if (argc < 2) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -121,9 +123,9 @@ int do_getidcr (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	/* Validate arguments */
 	if (argc < 3) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
-	}
+ 	}
 
 	/* Find out whether ther is '.' (dot) symbol in the first parameter. */
 	strncpy (buf, argv[1], sizeof(buf)-1);
@@ -177,7 +179,7 @@ int do_setidcr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 	/* Validate arguments */
 	if (argc < 4) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -223,23 +225,25 @@ int do_setidcr (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	getdcr,	2,	1,	do_getdcr,
-	"Get an AMCC PPC 4xx DCR's value",
-	"dcrn - return a DCR's value."
+	"getdcr  - Get an AMCC PPC 4xx DCR's value\n",
+	"dcrn - return a DCR's value.\n"
 );
 U_BOOT_CMD(
 	setdcr,	2,	1,	do_setdcr,
-	"Set an AMCC PPC 4xx DCR's value",
-	"dcrn - set a DCR's value."
+	"setdcr  - Set an AMCC PPC 4xx DCR's value\n",
+	"dcrn - set a DCR's value.\n"
 );
 
 U_BOOT_CMD(
 	getidcr,	3,	1,	do_getidcr,
-	"Get a register value via indirect DCR addressing",
-	"adr_dcrn[.dat_dcrn] offset - write offset to adr_dcrn, read value from dat_dcrn."
+	"getidcr - Get a register value via indirect DCR addressing\n",
+	"adr_dcrn[.dat_dcrn] offset - write offset to adr_dcrn, read value from dat_dcrn.\n"
 );
 
 U_BOOT_CMD(
 	setidcr,	4,	1,	do_setidcr,
-	"Set a register value via indirect DCR addressing",
-	"adr_dcrn[.dat_dcrn] offset value - write offset to adr_dcrn, write value to dat_dcrn."
+	"setidcr - Set a register value via indirect DCR addressing\n",
+	"adr_dcrn[.dat_dcrn] offset value - write offset to adr_dcrn, write value to dat_dcrn.\n"
 );
+
+#endif /* CONFIG_4xx & CFG_CMD_SETGETDCR */

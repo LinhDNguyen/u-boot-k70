@@ -26,22 +26,21 @@
  */
 #include <common.h>
 #include <command.h>
-#include <stdio_dev.h>
+#include <devices.h>
+
+#if (CONFIG_COMMANDS & CFG_CMD_CONSOLE)
 
 extern void _do_coninfo (void);
 int do_coninfo (cmd_tbl_t * cmd, int flag, int argc, char *argv[])
 {
-	int l;
-	struct list_head *list = stdio_get_list();
-	struct list_head *pos;
-	struct stdio_dev *dev;
+	int i, l;
 
 	/* Scan for valid output and input devices */
 
 	puts ("List of available devices:\n");
 
-	list_for_each(pos, list) {
-		dev = list_entry(pos, struct stdio_dev, list);
+	for (i = 1; i <= ListNumItems (devlist); i++) {
+		device_t *dev = ListGetPtrToItem (devlist, i);
 
 		printf ("%-8s %08x %c%c%c ",
 			dev->name,
@@ -65,6 +64,8 @@ int do_coninfo (cmd_tbl_t * cmd, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	coninfo,	3,	1,	do_coninfo,
-	"print console devices and information",
+	"coninfo - print console devices and information\n",
 	""
 );
+
+#endif /* CFG_CMD_CONSOLE */

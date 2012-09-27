@@ -263,7 +263,7 @@ char * strdup(const char *s)
 #ifndef __HAVE_ARCH_STRSPN
 /**
  * strspn - Calculate the length of the initial substring of @s which only
- *	contain letters in @accept
+ * 	contain letters in @accept
  * @s: The string to be searched
  * @accept: The string to search for
  */
@@ -403,26 +403,10 @@ char *strswab(const char *s)
  */
 void * memset(void * s,int c,size_t count)
 {
-	unsigned long *sl = (unsigned long *) s;
-	unsigned long cl = 0;
-	char *s8;
-	int i;
+	char *xs = (char *) s;
 
-	/* do it one word at a time (32 bits or 64 bits) while possible */
-	if ( ((ulong)s & (sizeof(*sl) - 1)) == 0) {
-		for (i = 0; i < sizeof(*sl); i++) {
-			cl <<= 8;
-			cl |= c & 0xff;
-		}
-		while (count >= sizeof(*sl)) {
-			*sl++ = cl;
-			count -= sizeof(*sl);
-		}
-	}
-	/* fill 8 bits at a time */
-	s8 = (char *)sl;
 	while (count--)
-		*s8++ = c;
+		*xs++ = c;
 
 	return s;
 }
@@ -462,23 +446,12 @@ char * bcopy(const char * src, char * dest, int count)
  * You should not use this function to access IO space, use memcpy_toio()
  * or memcpy_fromio() instead.
  */
-void * memcpy(void *dest, const void *src, size_t count)
+void * memcpy(void * dest,const void *src,size_t count)
 {
-	unsigned long *dl = (unsigned long *)dest, *sl = (unsigned long *)src;
-	char *d8, *s8;
+	char *tmp = (char *) dest, *s = (char *) src;
 
-	/* while all data is aligned (common case), copy a word at a time */
-	if ( (((ulong)dest | (ulong)src) & (sizeof(*dl) - 1)) == 0) {
-		while (count >= sizeof(*dl)) {
-			*dl++ = *sl++;
-			count -= sizeof(*dl);
-		}
-	}
-	/* copy the reset one byte at a time */
-	d8 = (char *)dl;
-	s8 = (char *)sl;
 	while (count--)
-		*d8++ = *s8++;
+		*tmp++ = *s++;
 
 	return dest;
 }

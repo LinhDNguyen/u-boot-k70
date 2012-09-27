@@ -26,6 +26,8 @@
 #include <config.h>
 #include <malloc.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_FDOS)
+
 #include "dos.h"
 #include "fdos.h"
 
@@ -136,3 +138,5 @@ int read_fat (BootSector_t *boot, Fs_t *fs)
     }
     return (0);
 }
+
+#endif

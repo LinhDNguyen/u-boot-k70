@@ -21,11 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#include <errno.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #ifndef __ASSEMBLY__
@@ -35,41 +32,41 @@
 #include <config.h>
 #undef	__ASSEMBLY__
 
-#if defined(CONFIG_ENV_IS_IN_FLASH)
-# ifndef  CONFIG_ENV_ADDR
-#  define CONFIG_ENV_ADDR	(CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET)
+#if defined(CFG_ENV_IS_IN_FLASH)
+# ifndef  CFG_ENV_ADDR
+#  define CFG_ENV_ADDR	(CFG_FLASH_BASE + CFG_ENV_OFFSET)
 # endif
-# ifndef  CONFIG_ENV_OFFSET
-#  define CONFIG_ENV_OFFSET (CONFIG_ENV_ADDR - CONFIG_SYS_FLASH_BASE)
+# ifndef  CFG_ENV_OFFSET
+#  define CFG_ENV_OFFSET (CFG_ENV_ADDR - CFG_FLASH_BASE)
 # endif
-# if !defined(CONFIG_ENV_ADDR_REDUND) && defined(CONFIG_ENV_OFFSET_REDUND)
-#  define CONFIG_ENV_ADDR_REDUND	(CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET_REDUND)
+# if !defined(CFG_ENV_ADDR_REDUND) && defined(CFG_ENV_OFFSET_REDUND)
+#  define CFG_ENV_ADDR_REDUND	(CFG_FLASH_BASE + CFG_ENV_OFFSET_REDUND)
 # endif
-# ifndef  CONFIG_ENV_SIZE
-#  define CONFIG_ENV_SIZE	CONFIG_ENV_SECT_SIZE
+# ifndef  CFG_ENV_SIZE
+#  define CFG_ENV_SIZE	CFG_ENV_SECT_SIZE
 # endif
-# if defined(CONFIG_ENV_ADDR_REDUND) && !defined(CONFIG_ENV_SIZE_REDUND)
-#  define CONFIG_ENV_SIZE_REDUND	CONFIG_ENV_SIZE
+# if defined(CFG_ENV_ADDR_REDUND) && !defined(CFG_ENV_SIZE_REDUND)
+#  define CFG_ENV_SIZE_REDUND	CFG_ENV_SIZE
 # endif
-# if (CONFIG_ENV_ADDR >= CONFIG_SYS_MONITOR_BASE) && \
-     ((CONFIG_ENV_ADDR + CONFIG_ENV_SIZE) <= (CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN))
+# if (CFG_ENV_ADDR >= CFG_MONITOR_BASE) && \
+     ((CFG_ENV_ADDR + CFG_ENV_SIZE) <= (CFG_MONITOR_BASE + CFG_MONITOR_LEN))
 #  define ENV_IS_EMBEDDED	1
 # endif
-# if defined(CONFIG_ENV_ADDR_REDUND) || defined(CONFIG_ENV_OFFSET_REDUND)
-#  define CONFIG_SYS_REDUNDAND_ENVIRONMENT	1
+# if defined(CFG_ENV_ADDR_REDUND) || defined(CFG_ENV_OFFSET_REDUND)
+#  define CFG_REDUNDAND_ENVIRONMENT	1
 # endif
-#endif	/* CONFIG_ENV_IS_IN_FLASH */
+#endif	/* CFG_ENV_IS_IN_FLASH */
 
-#ifdef CONFIG_SYS_REDUNDAND_ENVIRONMENT
-# define ENV_HEADER_SIZE	(sizeof(uint32_t) + 1)
+#ifdef CFG_REDUNDAND_ENVIRONMENT
+# define ENV_HEADER_SIZE	(sizeof(unsigned long) + 1)
 #else
-# define ENV_HEADER_SIZE	(sizeof(uint32_t))
+# define ENV_HEADER_SIZE	(sizeof(unsigned long))
 #endif
 
-#define ENV_SIZE (CONFIG_ENV_SIZE - ENV_HEADER_SIZE)
+#define ENV_SIZE (CFG_ENV_SIZE - ENV_HEADER_SIZE)
 
 
-extern uint32_t crc32 (uint32_t, const unsigned char *, unsigned int);
+extern unsigned long crc32 (unsigned long, const unsigned char *, unsigned int);
 
 #ifdef	ENV_IS_EMBEDDED
 extern unsigned int env_size;
@@ -79,57 +76,19 @@ extern unsigned char environment;
 int main (int argc, char **argv)
 {
 #ifdef	ENV_IS_EMBEDDED
-	unsigned char pad = 0x00;
-	uint32_t crc;
+	int crc;
 	unsigned char *envptr = &environment,
 		*dataptr = envptr + ENV_HEADER_SIZE;
 	unsigned int datasize = ENV_SIZE;
-	unsigned int eoe;
-
-	if (argv[1] && !strncmp(argv[1], "--binary", 8)) {
-		int ipad = 0xff;
-		if (argv[1][8] == '=')
-			sscanf(argv[1] + 9, "%i", &ipad);
-		pad = ipad;
-	}
-
-	if (pad) {
-		/* find the end of env */
-		for (eoe = 0; eoe < datasize - 1; ++eoe)
-			if (!dataptr[eoe] && !dataptr[eoe+1]) {
-				eoe += 2;
-				break;
-			}
-		if (eoe < datasize - 1)
-			memset(dataptr + eoe, pad, datasize - eoe);
-	}
 
 	crc = crc32 (0, dataptr, datasize);
 
 	/* Check if verbose mode is activated passing a parameter to the program */
 	if (argc > 1) {
-		if (!strncmp(argv[1], "--binary", 8)) {
-			int le = (argc > 2 ? !strcmp(argv[2], "le") : 1);
-			size_t i, start, end, step;
-			if (le) {
-				start = 0;
-				end = ENV_HEADER_SIZE;
-				step = 1;
-			} else {
-				start = ENV_HEADER_SIZE - 1;
-				end = -1;
-				step = -1;
-			}
-			for (i = start; i != end; i += step)
-				printf("%c", (crc & (0xFF << (i * 8))) >> (i * 8));
-			if (fwrite(dataptr, 1, datasize, stdout) != datasize)
-				fprintf(stderr, "fwrite() failed: %s\n", strerror(errno));
-		} else {
-			printf("CRC32 from offset %08X to %08X of environment = %08X\n",
-				(unsigned int) (dataptr - envptr),
-				(unsigned int) (dataptr - envptr) + datasize,
-				crc);
-		}
+		printf ("CRC32 from offset %08X to %08X of environment = %08X\n",
+			(unsigned int) (dataptr - envptr),
+			(unsigned int) (dataptr - envptr) + datasize,
+			crc);
 	} else {
 		printf ("0x%08X\n", crc);
 	}

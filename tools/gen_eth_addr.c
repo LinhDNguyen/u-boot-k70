@@ -31,15 +31,15 @@ main(int argc, char *argv[])
 {
     unsigned long ethaddr_low, ethaddr_high;
 
-    srand(time(0) | getpid());
+    srandom(time(0) | getpid());
 
     /*
      * setting the 2nd LSB in the most significant byte of
      * the address makes it a locally administered ethernet
      * address
      */
-    ethaddr_high = (rand() & 0xfeff) | 0x0200;
-    ethaddr_low = rand();
+    ethaddr_high = (random() & 0xfeff) | 0x0200;
+    ethaddr_low = random();
 
     printf("%02lx:%02lx:%02lx:%02lx:%02lx:%02lx\n",
 	ethaddr_high >> 8, ethaddr_high & 0xff,

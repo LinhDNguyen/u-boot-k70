@@ -26,6 +26,8 @@
 #include <config.h>
 #include <malloc.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_FDOS)
+
 #include "dos.h"
 #include "fdos.h"
 
@@ -112,3 +114,5 @@ int fs_init (Fs_t *fs)
     free (boot);
     return (0);
 }
+
+#endif

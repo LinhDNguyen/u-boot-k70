@@ -27,11 +27,6 @@
 #ifndef _RTC_H_
 #define _RTC_H_
 
-/* bcd<->bin functions are needed by almost all the RTC drivers, let's include
- * it there instead of in evey single driver */
-
-#include <bcd.h>
-
 /*
  * The struct used to pass data from the generic interface code to
  * the hardware dependend low-level code ande vice versa. Identical
@@ -40,7 +35,7 @@
  * Note that there are small but significant differences to the
  * common "struct time":
  *
- *		struct time:		struct rtc_time:
+ * 		struct time:		struct rtc_time:
  * tm_mon	0 ... 11		1 ... 12
  * tm_year	years since 1900	years since 0
  */
@@ -57,8 +52,8 @@ struct rtc_time {
 	int tm_isdst;
 };
 
-int rtc_get (struct rtc_time *);
-int rtc_set (struct rtc_time *);
+void rtc_get (struct rtc_time *);
+void rtc_set (struct rtc_time *);
 void rtc_reset (void);
 
 void GregorianDay (struct rtc_time *);

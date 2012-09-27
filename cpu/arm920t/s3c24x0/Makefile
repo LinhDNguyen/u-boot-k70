@@ -25,15 +25,11 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).a
 
-COBJS-$(CONFIG_USE_IRQ) += interrupts.o
-COBJS-y	+= speed.o
-COBJS-y	+= timer.o
-COBJS-y	+= usb.o
-COBJS-y	+= usb_ohci.o
+COBJS	= i2c.o interrupts.o serial.o speed.o \
+	  usb_ohci.o nand_flash.o
 
-
-SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
-OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 
 all:	$(obj).depend $(LIB)
 

@@ -35,7 +35,7 @@
 #include <common.h>
 #include <command.h>
 
-#if defined(CONFIG_CMD_VFD)
+#if (CONFIG_COMMANDS & CFG_CMD_VFD)
 
 #include <vfd_logo.h>
 #define VFD_TEST_LOGO_BMPNR 0
@@ -50,7 +50,7 @@ int do_vfd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong bitmap;
 
 	if (argc != 2) {
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -66,15 +66,16 @@ int do_vfd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 }
 
 U_BOOT_CMD(
-	vfd,	2,	0,	do_vfd,
-	"load a bitmap to the VFDs on TRAB",
-	"/N\n"
-	"    - load bitmap N to the VFDs (N is _decimal_ !!!)\n"
+ 	vfd,	2,	0,	do_vfd,
+ 	"vfd     - load a bitmap to the VFDs on TRAB\n",
+ 	"/N\n"
+ 	"    - load bitmap N to the VFDs (N is _decimal_ !!!)\n"
 	"vfd ADDR\n"
-	"    - load bitmap at address ADDR"
+	"    - load bitmap at address ADDR\n"
 );
-#endif
+#endif	/* CFG_CMD_VFD */
 
+#ifdef CONFIG_VFD
 int trab_vfd (ulong bitmap)
 {
 	uchar *addr;
@@ -102,3 +103,4 @@ int trab_vfd (ulong bitmap)
 	transfer_pic(3, addr, VFD_LOGO_HEIGHT, VFD_LOGO_WIDTH);
 	return 0;
 }
+#endif	/* CONFIG_VFD */

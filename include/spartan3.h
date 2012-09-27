@@ -30,6 +30,7 @@
 extern int Spartan3_load( Xilinx_desc *desc, void *image, size_t size );
 extern int Spartan3_dump( Xilinx_desc *desc, void *buf, size_t bsize );
 extern int Spartan3_info( Xilinx_desc *desc );
+extern int Spartan3_reloc( Xilinx_desc *desc, ulong reloc_off );
 
 /* Slave Parallel Implementation function table */
 typedef struct {
@@ -46,6 +47,7 @@ typedef struct {
 	Xilinx_busy_fn	busy;
 	Xilinx_abort_fn	abort;
 	Xilinx_post_fn	post;
+	int           	relocated;
 } Xilinx_Spartan3_Slave_Parallel_fns;
 
 /* Slave Serial Implementation function table */
@@ -56,31 +58,24 @@ typedef struct {
 	Xilinx_init_fn	init;
 	Xilinx_done_fn	done;
 	Xilinx_wr_fn	wr;
-	Xilinx_post_fn	post;
+	int           	relocated;
 } Xilinx_Spartan3_Slave_Serial_fns;
 
 /* Device Image Sizes
  *********************************************************************/
 /* Spartan-III (1.2V) */
-#define XILINX_XC3S50_SIZE	439264/8
-#define XILINX_XC3S200_SIZE	1047616/8
-#define XILINX_XC3S400_SIZE	1699136/8
-#define XILINX_XC3S1000_SIZE	3223488/8
-#define XILINX_XC3S1500_SIZE	5214784/8
-#define XILINX_XC3S2000_SIZE	7673024/8
-#define XILINX_XC3S4000_SIZE	11316864/8
-#define XILINX_XC3S5000_SIZE	13271936/8
-
-/* Spartan-3E (v3.4) */
-#define	XILINX_XC3S100E_SIZE	581344/8
-#define	XILINX_XC3S250E_SIZE	1353728/8
-#define	XILINX_XC3S500E_SIZE	2270208/8
-#define	XILINX_XC3S1200E_SIZE	3841184/8
-#define	XILINX_XC3S1600E_SIZE	5969696/8
+#define XILINX_XC3S50_SIZE  	439264/8
+#define XILINX_XC3S200_SIZE  	1047616/8
+#define XILINX_XC3S400_SIZE  	1699136/8
+#define XILINX_XC3S1000_SIZE 	3223488/8
+#define XILINX_XC3S1500_SIZE 	5214784/8
+#define XILINX_XC3S2000_SIZE 	7673024/8
+#define XILINX_XC3S4000_SIZE 	11316864/8
+#define XILINX_XC3S5000_SIZE 	13271936/8
 
 /* Descriptor Macros
  *********************************************************************/
-/* Spartan-III devices */
+/* Spartan-II devices */
 #define XILINX_XC3S50_DESC(iface, fn_table, cookie) \
 { Xilinx_Spartan3, iface, XILINX_XC3S50_SIZE, fn_table, cookie }
 
@@ -97,28 +92,12 @@ typedef struct {
 { Xilinx_Spartan3, iface, XILINX_XC3S1500_SIZE, fn_table, cookie }
 
 #define XILINX_XC3S2000_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S2000_SIZE, fn_table, cookie }
+{ Xilinx_Spartan3, iface, XILINX_XC3S2000E_SIZE, fn_table, cookie }
 
 #define XILINX_XC3S4000_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S4000_SIZE, fn_table, cookie }
+{ Xilinx_Spartan3, iface, XILINX_XC3S4000E_SIZE, fn_table, cookie }
 
 #define XILINX_XC3S5000_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S5000_SIZE, fn_table, cookie }
-
-/* Spartan-3E devices */
-#define XILINX_XC3S100E_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S100E_SIZE, fn_table, cookie }
-
-#define XILINX_XC3S250E_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S250E_SIZE, fn_table, cookie }
-
-#define XILINX_XC3S500E_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S500E_SIZE, fn_table, cookie }
-
-#define XILINX_XC3S1200E_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S1200E_SIZE, fn_table, cookie }
-
-#define XILINX_XC3S1600E_DESC(iface, fn_table, cookie) \
-{ Xilinx_Spartan3, iface, XILINX_XC3S1600E_SIZE, fn_table, cookie }
+{ Xilinx_Spartan3, iface, XILINX_XC3S5000E_SIZE, fn_table, cookie }
 
 #endif /* _SPARTAN3_H_ */

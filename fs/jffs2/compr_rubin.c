@@ -39,6 +39,8 @@
  */
 
 #include <config.h>
+#if (CONFIG_COMMANDS & CFG_CMD_JFFS2)
+
 #include <jffs2/jffs2.h>
 #include <jffs2/compr_rubin.h>
 
@@ -120,3 +122,5 @@ void dynrubin_decompress(unsigned char *data_in, unsigned char *cpage_out,
 
 	rubin_do_decompress(bits, data_in+8, cpage_out, dstlen);
 }
+
+#endif /* CFG_CMD_JFFS2 */

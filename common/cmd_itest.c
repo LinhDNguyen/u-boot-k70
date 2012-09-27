@@ -32,6 +32,8 @@
 #include <config.h>
 #include <command.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_ITEST)
+
 #define EQ	0
 #define NE	1
 #define LT	2
@@ -64,19 +66,16 @@ op_tbl_t op_table [] = {
 
 #define op_tbl_size (sizeof(op_table)/sizeof(op_table[0]))
 
+extern int cmd_get_data_size(char* arg, int default_size);
+
 static long evalexp(char *s, int w)
 {
-	long l = 0;
-	long *p;
+	long l, *p;
 
 	/* if the parameter starts with a * then assume is a pointer to the value we want */
 	if (s[0] == '*') {
 		p = (long *)simple_strtoul(&s[1], NULL, 16);
-		switch (w) {
-		case 1: return((long)(*(unsigned char *)p));
-		case 2: return((long)(*(unsigned short *)p));
-		case 4: return(*p);
-		}
+		l = *p;
 	} else {
 		l = simple_strtoul(s, NULL, 16);
 	}
@@ -166,7 +165,7 @@ int do_itest ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 
 	/* Validate arguments */
 	if ((argc != 4)){
-		cmd_usage(cmdtp);
+		printf("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 
@@ -195,6 +194,7 @@ int do_itest ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 
 U_BOOT_CMD(
 	itest, 4, 0, do_itest,
-	"return true/false on integer compare",
-	"[.b, .w, .l, .s] [*]value1 <op> [*]value2"
+	"itest\t- return true/false on integer compare\n",
+	"[.b, .w, .l, .s] [*]value1 <op> [*]value2\n"
 );
+#endif	/* CONFIG_COMMANDS & CFG_CMD_ITEST */

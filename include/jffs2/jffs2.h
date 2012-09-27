@@ -50,9 +50,6 @@
 #define JFFS2_EMPTY_BITMASK 0xffff
 #define JFFS2_DIRTY_BITMASK 0x0000
 
-/* Summary node MAGIC marker */
-#define JFFS2_SUM_MAGIC	0x02851885
-
 /* We only allow a single char for length, and 0xFF is empty flash so
    we don't want it confused with a real length. Hence max 254.
 */
@@ -68,9 +65,10 @@
 #define JFFS2_COMPR_COPY	0x04
 #define JFFS2_COMPR_DYNRUBIN	0x05
 #define JFFS2_COMPR_ZLIB	0x06
-#if defined(CONFIG_JFFS2_LZO)
+#if defined(CONFIG_JFFS2_LZO_LZARI)
 #define JFFS2_COMPR_LZO		0x07
-#define JFFS2_NUM_COMPR		8
+#define JFFS2_COMPR_LZARI	0x08
+#define JFFS2_NUM_COMPR		9
 #else
 #define JFFS2_NUM_COMPR		7
 #endif
@@ -91,7 +89,6 @@
 #define JFFS2_NODETYPE_INODE (JFFS2_FEATURE_INCOMPAT | JFFS2_NODE_ACCURATE | 2)
 #define JFFS2_NODETYPE_CLEANMARKER (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 3)
 #define JFFS2_NODETYPE_PADDING (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 4)
-#define JFFS2_NODETYPE_SUMMARY (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 6)
 
 /* Maybe later... */
 /*#define JFFS2_NODETYPE_CHECKPOINT (JFFS2_FEATURE_RWCOMPAT_DELETE | JFFS2_NODE_ACCURATE | 3) */
@@ -169,24 +166,9 @@ struct jffs2_raw_inode
 /*	__u8 data[dsize]; */
 } __attribute__((packed));
 
-struct jffs2_raw_summary
-{
-	__u16 magic;
-	__u16 nodetype; 	/* = JFFS2_NODETYPE_SUMMARY */
-	__u32 totlen;
-	__u32 hdr_crc;
-	__u32 sum_num;	/* number of sum entries*/
-	__u32 cln_mkr;	/* clean marker size, 0 = no cleanmarker */
-	__u32 padded;	/* sum of the size of padding nodes */
-	__u32 sum_crc;	/* summary information crc */
-	__u32 node_crc; 	/* node crc */
-	__u32 sum[0]; 	/* inode summary info */
-};
-
 union jffs2_node_union {
 	struct jffs2_raw_inode i;
 	struct jffs2_raw_dirent d;
-	struct jffs2_raw_summary s;
 	struct jffs2_unknown_node u;
 } __attribute__((packed));
 
@@ -225,8 +207,10 @@ void dynrubin_decompress(unsigned char *data_in, unsigned char *cpage_out,
 		unsigned long sourcelen, unsigned long dstlen);
 long zlib_decompress(unsigned char *data_in, unsigned char *cpage_out,
 		__u32 srclen, __u32 destlen);
-#if defined(CONFIG_JFFS2_LZO)
+#if defined(CONFIG_JFFS2_LZO_LZARI)
 int lzo_decompress(unsigned char *data_in, unsigned char *cpage_out,
+		u32 srclen, u32 destlen);
+int lzari_decompress(unsigned char *data_in, unsigned char *cpage_out,
 		u32 srclen, u32 destlen);
 #endif
 

@@ -31,6 +31,8 @@
 #include <command.h>
 #include <fdc.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_FDOS)
+
 /*-----------------------------------------------------------------------------
  * do_fdosboot --
  *-----------------------------------------------------------------------------
@@ -42,7 +44,7 @@ int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
     int size;
     int rcode = 0;
     char buf [12];
-    int drive = CONFIG_SYS_FDC_DRIVE_NUMBER;
+    int drive = CFG_FDC_DRIVE_NUMBER;
 
     /* pre-set load_addr */
     if ((ep = getenv("loadaddr")) != NULL) {
@@ -73,7 +75,7 @@ int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	name = argv [2];
 	break;
     default:
-	cmd_usage(cmdtp);
+	printf ("Usage:\n%s\n", cmdtp->usage);
 	break;
     }
 
@@ -118,7 +120,7 @@ int do_fdosboot(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int do_fdosls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
     char *path = "";
-    int drive = CONFIG_SYS_FDC_DRIVE_NUMBER;
+    int drive = CFG_FDC_DRIVE_NUMBER;
 
     switch (argc) {
     case 1:
@@ -142,12 +144,14 @@ int do_fdosls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	fdosboot,	3,	0,	do_fdosboot,
-	"boot from a dos floppy file",
-	"[loadAddr] [filename]"
+	"fdosboot- boot from a dos floppy file\n",
+	"[loadAddr] [filename]\n"
 );
 
 U_BOOT_CMD(
 	fdosls,	2,	0,	do_fdosls,
-	"list files in a directory",
-	"[directory]"
+	"fdosls  - list files in a directory\n",
+	"[directory]\n"
 );
+
+#endif	/* CONFIG_COMMANDS & CFG_CMD_FDOS */

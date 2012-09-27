@@ -24,7 +24,6 @@
 #ifndef	__ASM_GBL_DATA_H
 #define __ASM_GBL_DATA_H
 
-#include "config.h"
 #include "asm/types.h"
 
 /*
@@ -34,91 +33,41 @@
  * global variables during system initialization (until we have set
  * up the memory controller so that we can use RAM).
  *
- * Keep it *SMALL* and remember to set CONFIG_SYS_GBL_DATA_SIZE > sizeof(gd_t)
+ * Keep it *SMALL* and remember to set CFG_GBL_DATA_SIZE > sizeof(gd_t)
  */
 
 typedef	struct	global_data {
 	bd_t		*bd;
 	unsigned long	flags;
 	unsigned long	baudrate;
-	unsigned long	cpu_clk;	/* CPU clock in Hz! */
+	unsigned long	cpu_clk;	/* CPU clock in Hz!		*/
 	unsigned long	bus_clk;
-#if defined(CONFIG_8xx)
-	unsigned long	brg_clk;
-#endif
 #if defined(CONFIG_CPM2)
 	/* There are many clocks on the MPC8260 - see page 9-5 */
 	unsigned long	vco_out;
 	unsigned long	cpm_clk;
 	unsigned long	scc_clk;
 	unsigned long	brg_clk;
-#ifdef CONFIG_PCI
-	unsigned long	pci_clk;
 #endif
-#endif
-	unsigned long   mem_clk;
-#if defined(CONFIG_MPC83xx)
+#if defined(CONFIG_MPC83XX)
 	/* There are other clocks in the MPC83XX */
 	u32 csb_clk;
-#if defined(CONFIG_MPC834x) || defined(CONFIG_MPC831x) || defined(CONFIG_MPC837x)
 	u32 tsec1_clk;
 	u32 tsec2_clk;
-	u32 usbdr_clk;
-#endif
-#if defined (CONFIG_MPC834x)
-	u32 usbmph_clk;
-#endif /* CONFIG_MPC834x */
-#if defined(CONFIG_MPC8315)
-	u32 tdm_clk;
-#endif
 	u32 core_clk;
+	u32 usbmph_clk;
+	u32 usbdr_clk;
+	u32 i2c_clk;
 	u32 enc_clk;
 	u32 lbiu_clk;
 	u32 lclk_clk;
+	u32 ddr_clk;
 	u32 pci_clk;
-#if defined(CONFIG_MPC837x) || defined(CONFIG_MPC831x)
-	u32 pciexp1_clk;
-	u32 pciexp2_clk;
-#endif
-#if defined(CONFIG_MPC837x) || defined(CONFIG_MPC8315)
-	u32 sata_clk;
-#endif
-#if defined(CONFIG_MPC8360)
-	u32  mem_sec_clk;
-#endif /* CONFIG_MPC8360 */
-#endif
-#if defined(CONFIG_FSL_ESDHC)
-	u32 sdhc_clk;
-#endif
-#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
-	u32 lbc_clk;
-	void *cpu;
-#endif /* CONFIG_MPC85xx || CONFIG_MPC86xx */
-#if defined(CONFIG_MPC83xx) || defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
-	u32 i2c1_clk;
-	u32 i2c2_clk;
-#endif
-#if defined(CONFIG_QE)
-	u32 qe_clk;
-	u32 brg_clk;
-	uint mp_alloc_base;
-	uint mp_alloc_top;
-#endif /* CONFIG_QE */
-#if defined(CONFIG_FSL_LAW)
-	u32 used_laws;
-#endif
-#if defined(CONFIG_E500)
-	u32 used_tlb_cams[(CONFIG_SYS_NUM_TLBCAMS+31)/32];
 #endif
 #if defined(CONFIG_MPC5xxx)
 	unsigned long	ipb_clk;
 	unsigned long	pci_clk;
 #endif
-#if defined(CONFIG_MPC512X)
-	u32 ips_clk;
-	u32 csb_clk;
-	u32 pci_clk;
-#endif /* CONFIG_MPC512X */
 #if defined(CONFIG_MPC8220)
 	unsigned long   bExtUart;
 	unsigned long   inp_clk;
@@ -127,23 +76,17 @@ typedef	struct	global_data {
 	unsigned long   pev_clk;
 	unsigned long   flb_clk;
 #endif
-	phys_size_t	ram_size;	/* RAM size */
+	unsigned long	ram_size;	/* RAM size */
+	unsigned long	reloc_off;	/* Relocation Offset */
 	unsigned long	reset_status;	/* reset status register at boot	*/
-#if defined(CONFIG_MPC83xx)
-	unsigned long	arbiter_event_attributes;
-	unsigned long	arbiter_event_address;
-#endif
 	unsigned long	env_addr;	/* Address  of Environment struct	*/
 	unsigned long	env_valid;	/* Checksum of Environment valid?	*/
 	unsigned long	have_console;	/* serial_init() was called		*/
-#if defined(CONFIG_SYS_ALLOC_DPRAM) || defined(CONFIG_CPM2)
+#if defined(CFG_ALLOC_DPRAM) || defined(CONFIG_CPM2)
 	unsigned int	dp_alloc_base;
 	unsigned int	dp_alloc_top;
 #endif
-#if defined(CONFIG_4xx)
-	u32  uart_clk;
-#endif /* CONFIG_4xx */
-#if defined(CONFIG_SYS_GT_6426x)
+#if defined(CFG_GT_6426x)
 	unsigned int	mirror_hack[16];
 #endif
 #if defined(CONFIG_A3000)	|| \
@@ -152,7 +95,9 @@ typedef	struct	global_data {
     defined(CONFIG_SANDPOINT)
 	void *		console_addr;
 #endif
+#ifdef CONFIG_AMIGAONEG3SE
 	unsigned long	relocaddr;	/* Start address of U-Boot in RAM */
+#endif
 #if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
 	unsigned long	fb_base;	/* Base address of framebuffer memory	*/
 #endif
@@ -167,11 +112,8 @@ typedef	struct	global_data {
 	unsigned long do_mdm_init;
 	unsigned long be_quiet;
 #endif
-#if defined(CONFIG_LWMON) || defined(CONFIG_LWMON5)
+#ifdef CONFIG_LWMON
 	unsigned long kbd_status;
-#endif
-#if defined(CONFIG_WD_MAX_RATE)
-	unsigned long long wdt_last;	/* trace watch-dog triggering rate */
 #endif
 	void		**jt;		/* jump table */
 } gd_t;
@@ -182,13 +124,9 @@ typedef	struct	global_data {
 #define	GD_FLG_RELOC	0x00001		/* Code was relocated to RAM		*/
 #define	GD_FLG_DEVINIT	0x00002		/* Devices have been initialized	*/
 #define	GD_FLG_SILENT	0x00004		/* Silent mode				*/
-#define	GD_FLG_POSTFAIL	0x00008		/* Critical POST test failed		*/
-#define	GD_FLG_POSTSTOP	0x00010		/* POST seqeunce aborted		*/
-#define	GD_FLG_LOGINIT	0x00020		/* Log Buffer has been initialized	*/
-#define GD_FLG_DISABLE_CONSOLE	0x00040		/* Disable console (in & out)	 */
 
 #if 1
-#define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r2")
+#define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r29")
 #else /* We could use plain global data, but the resulting code is bigger */
 #define XTRN_DECLARE_GLOBAL_DATA_PTR	extern
 #define DECLARE_GLOBAL_DATA_PTR     XTRN_DECLARE_GLOBAL_DATA_PTR \

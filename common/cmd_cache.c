@@ -27,6 +27,8 @@
 #include <common.h>
 #include <command.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_CACHE)
+
 static int on_off (const char *);
 
 int do_icache ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -35,7 +37,7 @@ int do_icache ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	case 2:			/* on / off	*/
 		switch (on_off(argv[1])) {
 #if 0	/* prevented by varargs handling; FALLTROUGH is harmless, too */
-		default: cmd_usage(cmdtp);
+		default: printf ("Usage:\n%s\n", cmdtp->usage);
 			return;
 #endif
 		case 0:	icache_disable();
@@ -49,7 +51,7 @@ int do_icache ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			icache_status() ? "ON" : "OFF");
 		return 0;
 	default:
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 	return 0;
@@ -61,7 +63,7 @@ int do_dcache ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	case 2:			/* on / off	*/
 		switch (on_off(argv[1])) {
 #if 0	/* prevented by varargs handling; FALLTROUGH is harmless, too */
-		default: cmd_usage(cmdtp);
+		default: printf ("Usage:\n%s\n", cmdtp->usage);
 			return;
 #endif
 		case 0:	dcache_disable();
@@ -75,7 +77,7 @@ int do_dcache ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			dcache_status() ? "ON" : "OFF");
 		return 0;
 	default:
-		cmd_usage(cmdtp);
+		printf ("Usage:\n%s\n", cmdtp->usage);
 		return 1;
 	}
 	return 0;
@@ -95,14 +97,16 @@ static int on_off (const char *s)
 
 U_BOOT_CMD(
 	icache,   2,   1,     do_icache,
-	"enable or disable instruction cache",
+	"icache  - enable or disable instruction cache\n",
 	"[on, off]\n"
-	"    - enable or disable instruction cache"
+	"    - enable or disable instruction cache\n"
 );
 
 U_BOOT_CMD(
 	dcache,   2,   1,     do_dcache,
-	"enable or disable data cache",
+	"dcache  - enable or disable data cache\n",
 	"[on, off]\n"
-	"    - enable or disable data (writethrough) cache"
+	"    - enable or disable data (writethrough) cache\n"
 );
+
+#endif	/* CFG_CMD_CACHE */

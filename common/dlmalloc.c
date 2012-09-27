@@ -1,5 +1,3 @@
-#include <common.h>
-
 #if 0	/* Moved to malloc.h */
 /* ---------- To make a malloc.h, start cutting here ------------ */
 
@@ -949,6 +947,7 @@ void malloc_stats();
 #endif	/* 0 */
 
 #endif	/* 0 */			/* Moved to malloc.h */
+#include <common.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -1155,7 +1154,7 @@ struct malloc_chunk
   INTERNAL_SIZE_T size;      /* Size in bytes, including overhead. */
   struct malloc_chunk* fd;   /* double links -- used only if free. */
   struct malloc_chunk* bk;
-} __attribute__((__may_alias__)) ;
+};
 
 typedef struct malloc_chunk* mchunkptr;
 
@@ -1457,7 +1456,7 @@ typedef struct malloc_chunk* mbinptr;
    indexing, maintain locality, and avoid some initialization tests.
 */
 
-#define top            (av_[2])          /* The topmost chunk */
+#define top            (bin_at(0)->fd)   /* The topmost chunk */
 #define last_remainder (bin_at(1))       /* remainder from last split */
 
 
@@ -1494,7 +1493,6 @@ static mbinptr av_[NAV * 2 + 2] = {
  IAV(120), IAV(121), IAV(122), IAV(123), IAV(124), IAV(125), IAV(126), IAV(127)
 };
 
-#ifndef CONFIG_RELOC_FIXUP_WORKS
 void malloc_bin_reloc (void)
 {
 	unsigned long *p = (unsigned long *)(&av_[2]);
@@ -1503,33 +1501,7 @@ void malloc_bin_reloc (void)
 		*p++ += gd->reloc_off;
 	}
 }
-#endif
-
-ulong mem_malloc_start = 0;
-ulong mem_malloc_end = 0;
-ulong mem_malloc_brk = 0;
-
-void *sbrk(ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end))
-		return NULL;
-
-	mem_malloc_brk = new;
-
-	return (void *)old;
-}
-
-void mem_malloc_init(ulong start, ulong size)
-{
-	mem_malloc_start = start;
-	mem_malloc_end = start + size;
-	mem_malloc_brk = start;
-
-	memset((void *)mem_malloc_start, 0, size);
-}
+
 
 /* field-extraction macros */
 
@@ -1579,14 +1551,13 @@ void mem_malloc_init(ulong start, ulong size)
 
 #define BINBLOCKWIDTH     4   /* bins per block */
 
-#define binblocks_r     ((INTERNAL_SIZE_T)av_[1]) /* bitvector of nonempty blocks */
-#define binblocks_w     (av_[1])
+#define binblocks      (bin_at(0)->size) /* bitvector of nonempty blocks */
 
 /* bin<->block macros */
 
 #define idx2binblock(ix)    ((unsigned)1 << (ix / BINBLOCKWIDTH))
-#define mark_binblock(ii)   (binblocks_w = (mbinptr)(binblocks_r | idx2binblock(ii)))
-#define clear_binblock(ii)  (binblocks_w = (mbinptr)(binblocks_r & ~(idx2binblock(ii))))
+#define mark_binblock(ii)   (binblocks |= idx2binblock(ii))
+#define clear_binblock(ii)  (binblocks &= ~(idx2binblock(ii)))
 
 
 
@@ -2179,12 +2150,6 @@ Void_t* mALLOc(bytes) size_t bytes;
 
   INTERNAL_SIZE_T nb;
 
-  /* check if mem_malloc_init() was run */
-  if ((mem_malloc_start == 0) && (mem_malloc_end == 0)) {
-    /* not initialized yet */
-    return 0;
-  }
-
   if ((long)bytes < 0) return 0;
 
   nb = request2size(bytes);  /* padded request size; */
@@ -2284,17 +2249,17 @@ Void_t* mALLOc(bytes) size_t bytes;
      search for best fitting chunk by scanning bins in blockwidth units.
   */
 
-  if ( (block = idx2binblock(idx)) <= binblocks_r)
+  if ( (block = idx2binblock(idx)) <= binblocks)
   {
 
     /* Get to the first marked block */
 
-    if ( (block & binblocks_r) == 0)
+    if ( (block & binblocks) == 0)
     {
       /* force to an even block boundary */
       idx = (idx & ~(BINBLOCKWIDTH - 1)) + BINBLOCKWIDTH;
       block <<= 1;
-      while ((block & binblocks_r) == 0)
+      while ((block & binblocks) == 0)
       {
 	idx += BINBLOCKWIDTH;
 	block <<= 1;
@@ -2349,7 +2314,7 @@ Void_t* mALLOc(bytes) size_t bytes;
       {
 	if ((startidx & (BINBLOCKWIDTH - 1)) == 0)
 	{
-	  av_[1] = (mbinptr)(binblocks_r & ~block);
+	  binblocks &= ~block;
 	  break;
 	}
 	--startidx;
@@ -2358,9 +2323,9 @@ Void_t* mALLOc(bytes) size_t bytes;
 
       /* Get to the next possibly nonempty block */
 
-      if ( (block <<= 1) <= binblocks_r && (block != 0) )
+      if ( (block <<= 1) <= binblocks && (block != 0) )
       {
-	while ((block & binblocks_r) == 0)
+	while ((block & binblocks) == 0)
 	{
 	  idx += BINBLOCKWIDTH;
 	  block <<= 1;

@@ -30,34 +30,37 @@ BINS	= gdbsend gdbcont
 
 COBJS	= gdbsend.o gdbcont.o error.o remote.o serial.o
 
-HOSTOBJS := $(addprefix $(obj),$(COBJS))
-HOSTSRCS := $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
+SRCS	:= $(COBJS:.o=.c)
 BINS	:= $(addprefix $(obj),$(BINS))
 
 #
 # Use native tools and options
 #
-HOSTCPPFLAGS = -I$(BFD_ROOT_DIR)/include
+CPPFLAGS   = -I$(BFD_ROOT_DIR)/include
+CFLAGS     = $(HOST_CFLAGS) -O $(CPPFLAGS)
+CC	   = $(HOSTCC)
+MAKEDEPEND = makedepend
 
 HOSTOS := $(shell uname -s | sed -e 's/\([Cc][Yy][Gg][Ww][Ii][Nn]\).*/cygwin/')
 
 ifeq ($(HOSTOS),cygwin)
 
 all:
-$(obj).depend:
+.depend:
 
 else	# ! CYGWIN
 
 all:	$(obj).depend $(BINS)
 
 $(obj)gdbsend:	$(obj)gdbsend.o $(obj)error.o $(obj)remote.o $(obj)serial.o
-		$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
+		$(CC) $(CFLAGS) $(HOST_LDFLAGS) -o $@ $^
 
 $(obj)gdbcont:	$(obj)gdbcont.o $(obj)error.o $(obj)remote.o $(obj)serial.o
-		$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
+		$(CC) $(CFLAGS) $(HOST_LDFLAGS) -o $@ $^
 
 clean:
-	rm -f $(HOSTOBJS)
+	rm -f $(OBJS)
 
 distclean:	clean
 	rm -f $(BINS) $(obj)core $(obj)*.bak $(obj).depend

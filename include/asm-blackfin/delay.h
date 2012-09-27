@@ -1,7 +1,7 @@
 /*
  * U-boot - delay.h Routines for introducing delays
  *
- * Copyright (c) 2005-2007 Analog Devices Inc.
+ * Copyright (c) 2005 blackfin.uclinux.org
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -18,8 +18,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
- * MA 02110-1301 USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef _BLACKFIN_DELAY_H
@@ -35,9 +35,9 @@
 extern __inline__ void __delay(unsigned long loops)
 {
 	__asm__ __volatile__("1:\t%0 += -1;\n\t"
-			     "cc = %0 == 0;\n\t"
-			     "if ! cc jump 1b;\n":"=d"(loops)
-			     :"0"(loops));
+				"cc = %0 == 0;\n\t"
+				"if ! cc jump 1b;\n":"=d"(loops)
+				:"0"(loops));
 }
 
 /*
@@ -47,7 +47,7 @@ extern __inline__ void __delay(unsigned long loops)
  * first constant multiplications gets optimized away if the delay is
  * a constant)
  */
-extern __inline__ void __udelay(unsigned long usecs)
+extern __inline__ void udelay(unsigned long usecs)
 {
 	__delay(usecs);
 }

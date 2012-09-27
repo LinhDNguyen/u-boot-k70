@@ -23,7 +23,7 @@
 #define __ASM_AVR32_DMA_MAPPING_H
 
 #include <asm/io.h>
-#include <asm/arch/cacheflush.h>
+#include <asm/cacheflush.h>
 
 enum dma_data_direction {
 	DMA_BIDIRECTIONAL	= 0,

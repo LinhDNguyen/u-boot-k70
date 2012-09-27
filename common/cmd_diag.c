@@ -28,6 +28,8 @@
 #include <command.h>
 #include <post.h>
 
+#if (CONFIG_COMMANDS & CFG_CMD_DIAG) && defined(CONFIG_POST)
+
 int do_diag (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned int i;
@@ -65,12 +67,14 @@ int do_diag (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 /***************************************************/
 
 U_BOOT_CMD(
-	diag,	CONFIG_SYS_MAXARGS,	0,	do_diag,
-	"perform board diagnostics",
+	diag,	CFG_MAXARGS,	0,	do_diag,
+	"diag    - perform board diagnostics\n",
 	     "    - print list of available tests\n"
 	"diag [test1 [test2]]\n"
 	"         - print information about specified tests\n"
 	"diag run - run all available tests\n"
 	"diag run [test1 [test2]]\n"
-	"         - run specified tests"
+	"         - run specified tests\n"
 );
+
+#endif /* CFG_CMD_DIAG */

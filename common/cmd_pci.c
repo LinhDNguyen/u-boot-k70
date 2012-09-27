@@ -30,10 +30,17 @@
  */
 
 #include <common.h>
+
+#ifdef CONFIG_PCI
+
 #include <command.h>
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <pci.h>
+
+#if (CONFIG_COMMANDS & CFG_CMD_PCI)
+
+extern int cmd_get_data_size(char* arg, int default_size);
 
 unsigned char	ShortPCIListing = 1;
 
@@ -48,7 +55,7 @@ void pci_header_show_brief(pci_dev_t dev);
  * Subroutine:  pciinfo
  *
  * Description: Show information about devices on PCI bus.
- *				Depending on the define CONFIG_SYS_SHORT_PCI_LISTING
+ *				Depending on the define CFG_SHORT_PCI_LISTING
  *				the output will be more or less exhaustive.
  *
  * Inputs:	bus_no		the number of the bus to be scanned.
@@ -171,7 +178,7 @@ static char *pci_classes_str(u8 class)
  * Subroutine:  pci_header_show_brief
  *
  * Description: Reads and prints the header of the
- *		specified PCI device in short form.
+ * 		specified PCI device in short form.
  *
  * Inputs:	dev      Bus+Device+Function number
  *
@@ -534,7 +541,7 @@ int do_pci (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	return 1;
  usage:
-	cmd_usage(cmdtp);
+	printf ("Usage:\n%s\n", cmdtp->usage);
 	return 1;
 }
 
@@ -543,7 +550,7 @@ int do_pci (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	pci,	5,	1,	do_pci,
-	"list and access PCI Configuration Space",
+	"pci     - list and access PCI Configuration Space\n",
 	"[bus] [long]\n"
 	"    - short or long list of PCI devices on bus 'bus'\n"
 	"pci header b.d.f\n"
@@ -555,5 +562,9 @@ U_BOOT_CMD(
 	"pci modify[.b, .w, .l] b.d.f address\n"
 	"    -  modify, auto increment CFG address\n"
 	"pci write[.b, .w, .l] b.d.f address value\n"
-	"    - write to CFG address"
+	"    - write to CFG address\n"
 );
+
+#endif /* (CONFIG_COMMANDS & CFG_CMD_PCI) */
+
+#endif /* CONFIG_PCI */
